@@ -488,6 +488,40 @@ def pick_fill(cands, room_mm):
 
 
 # ---------------------------------------------------------------- 브랜딩
+FIG_MAX_MB = 3.0
+
+
+def embed_figures(data):
+    """`killer[].figures[].src` 를 **종이에 심는다** — 파일 길을 data URI 로 바꾼다.
+
+    HTML 한 장으로 돌아다니는 산출물이라 바깥 파일을 가리키면 남에게 보냈을 때
+    그림만 빈다. 글꼴·로고와 같은 규칙이다.
+
+    없는 파일은 **막는다.** 그림이 빠진 채로 조용히 나가는 쪽이 더 나쁘다 —
+    과학은 그림이 곧 문항이라 한 장만 비어도 그 문항이 뜻을 잃는다.
+    """
+    n = 0
+    for k in data.get("killer") or []:
+        for f in k.get("figures") or []:
+            src = f.get("src") or ""
+            if src.startswith("data:"):
+                continue
+            if not os.path.exists(src):
+                raise RenderError(
+                    "문항 그림이 없습니다: %s (%d번 «%s»)\n"
+                    "  MD 의 ![…](…) 가 가리키는 자리에 파일이 있어야 합니다."
+                    % (src, k.get("no", 0), f.get("alt", "")))
+            mb = os.path.getsize(src) / 1048576.0
+            if mb > FIG_MAX_MB:
+                raise RenderError("문항 그림이 너무 큽니다: %s (%.1fMB · 한도 %.1fMB)"
+                                  % (src, mb, FIG_MAX_MB))
+            mime = mimetypes.guess_type(src)[0] or "image/png"
+            with open(src, "rb") as fh:
+                f["src"] = "data:%s;base64,%s" % (mime, base64.b64encode(fh.read()).decode())
+            n += 1
+    return n
+
+
 def logo_block(brand):
     path = brand.get("logo_path")
     name = brand.get("academy") or "공감에듀"
@@ -693,6 +727,7 @@ def render(data, out_dir, internal=False, summary=False, src=None):
     # src 는 report.json 의 경로다. 조판에는 쓰이지 않는다 — 폰트에 없는 글자를 만났을 때
     # «데이터 몇 번째 줄» 까지 짚어 주기 위해서만 쓴다.
     data = derive(data)
+    nfig = embed_figures(data)
     brand = data.get("brand") or {}
     sections = data.get("sections")
     if not sections:
@@ -889,6 +924,8 @@ def render(data, out_dir, internal=False, summary=False, src=None):
     html = io.open(path, encoding="utf-8").read()
     print("[렌더] %s" % path)
     print("       섹션 %d개: %s" % (len(kept), " · ".join(kept)))
+    if nfig:
+        print("       문항 그림 %d장 심음" % nfig)
     print("       총 %d 페이지 — PDF 실측 · 테마 %s · %s%s"
           % (total, brand.get("theme") or "clean", tail[0],
              " (내부 칸 포함)" if internal and summary else ""))

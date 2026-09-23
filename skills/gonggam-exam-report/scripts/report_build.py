@@ -377,7 +377,31 @@ def parse_labeled(lines):
     return {k: [x for x in v] for k, v in out.items()}
 
 
-IMG_RE = re.compile(r"!\[[^\]]*\]\([^)]*\)")
+IMG_RE = re.compile(r"!\[([^\]]*)\]\(([^)]*)\)")
+
+
+def figures_of(lines, md_dir):
+    """MD 의 `![4번 그림](figs/q04.png)` 을 거둔다.
+
+    지금까지 `plain()` 은 이 표기를 **지우기만** 했다. 그래서 그림 경로
+    (자르기·깨끗이·판정)가 다 돌고도 리포트 종이에는 «한 장도» 안 찍혔다 —
+    과학처럼 그림이 본체인 과목에서 그게 드러났다.
+
+    길은 MD 가 있는 자리를 기준으로 푼다. 없는 파일을 **여기서 막지 않는다** —
+    렌더러가 심을 때 막는다. 종이에 가장 가까운 자리에서 막는 편이 낫다.
+    """
+    out, seen = [], set()
+    for line in lines:
+        for alt, src in IMG_RE.findall(str(line or "")):
+            src = (src.strip().split() or [""])[0].strip("<>")   # `(a.png "제목")` 꼴도 받는다
+            if not src or src in seen:
+                continue
+            seen.add(src)
+            p = src if os.path.isabs(src) else os.path.join(md_dir, src)
+            out.append({"src": os.path.normpath(p), "alt": plain(alt) or "문항 그림"})
+    return out
+
+
 LINK_RE = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 BOLD_RE = re.compile(r"\*\*(.+?)\*\*", re.S)
 UNDER_RE = re.compile(r"__(.+?)__", re.S)
@@ -1009,6 +1033,7 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
             "kind": ("서술형" if is_essay(it.get("type")) or (model and not choices)
                      else "객관식"),
             "conditions": conditions,
+            "figures": figures_of(qb["lines"], md_dir),
             "givens": givens,
             "model_answer": model,
             "flags": flags,
@@ -1202,6 +1227,9 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
             "excerpt": "\n".join(rec["excerpt"]),
             "choices": rec["choices"],
             "conditions": rec["conditions"],
+            # 그림은 «있으면» 실린다. 빈 목록이면 REPEAT 가 아무 것도 안 그린다 —
+            # 지시자에 «만약» 이 없어 빈 목록이 곧 «없음» 이다.
+            "figures": rec["figures"],
             "givens": rec["givens"],      # <보기> ⓐ~ⓔ — 선지가 이것들의 조합을 고른다
             "answer": answer,
             "wrong_reasons": rec["wrong_reasons"],

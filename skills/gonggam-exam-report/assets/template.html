@@ -572,6 +572,11 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
     <ol class="k-choices"><!-- REPEAT:choices --><li><span class="cn">{{@n}}</span><span>{{value}}</span></li><!-- /REPEAT:choices --></ol>
     <!-- /REPEAT:choice_box -->
     <!-- 조건은 시험지가 건 조건이라 «우리 글» 이 아니다. 흰 면(.origin)으로 가른다 -->
+    <!-- 문항 그림 — 있으면 실린다. 빈 목록이면 아무 것도 안 그린다.
+         그림은 «문항 그 자체» 라 발췌 바로 뒤에 온다. 캡션이 범례 노릇을 한다. -->
+    <!-- REPEAT:figures -->
+    <figure><img src="{{src}}" alt="{{alt}}"><figcaption>{{alt}}</figcaption></figure>
+    <!-- /REPEAT:figures -->
     <!-- REPEAT:cond_box -->
     <div class="block origin"><div class="bt">조건</div>
       <ol class="steps"><!-- REPEAT:conditions --><li>{{value}}</li><!-- /REPEAT:conditions --></ol>
