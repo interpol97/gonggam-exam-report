@@ -4,6 +4,12 @@
 완료 게이트 — 통과 못 하면 전달하지 않는다.
 
     python gate_check.py <out/> [report.json] [--exam <exam.json>] [--md <md폴더>]
+    python gate_check.py --data <report.json> [--exam <exam.json>]
+
+`--data` 는 **종이를 안 보고 데이터만** 잰다 — 빌더가 채우는 칸(em·num·unit·key·
+radar·steps_flow·fill_blocks)의 회귀 잠금이다. 크롬이 없는 자리에서도 돌고,
+한 벌 57초를 굽기 전에 «렌더가 죽을 자리» 를 먼저 말한다.
+**이것만으로 완료를 말하지 않는다** — 조판·쪽수·채움은 하나도 재지 못한다.
 
 경고하지 않는다. 막는다. 옛 스킬은 수식이 0개로 렌더돼도 「성공」을 찍었다.
 **0개를 재고 통과하는 것이 가장 나쁜 검사다.** 잴 대상이 없으면 통과가 아니라
@@ -61,6 +67,20 @@ ISSUE_MARKS = ("이유", "추론 정답", "판독불가", "⟨판독불가⟩", 
 ISSUE_KINDS = ("복수정답", "조건누락", "범위밖", "배점과다", "유형급변")
 # 같은 § 3 — 킬러문항이 채워야 하는 네 칸
 KILLER_BLOCKS = ("정답 근거", "오답 근거", "푸는 순서", "필요 개념")
+
+# ── 빌더가 채우는 칸 — references/report-schema.md § 「빌더가 채우는 칸」 ──
+# 참/거짓이 아니라 **문자열**이다. class 자리에 그대로 꽂히기 때문이다.
+EM_OK = ("", "em")                    # types[] · chapters[] · radar.axes[] · steps_flow[]
+KEY_OK = ("", "key")                  # overview.cards[]
+RADAR_OK = ("", "1")                  # radar.ok — 판형의 data-ok 에 그대로 꽂는다
+CARD_SLOTS = ("num", "unit", "key")   # 모든 카드에 온다
+STEP_SLOTS = ("text", "conclusion", "em", "value")   # 모든 줄에 온다
+HERE_DIR = os.path.dirname(os.path.abspath(__file__))
+SKILL_DIR = os.path.dirname(HERE_DIR)
+SUMMARY_TPL = os.path.join(SKILL_DIR, "assets", "template_summary.html")
+# 판형이 내준 채움 자리. **지시자 꼴 그대로** 찾는다 — «fill-[a-z-]+» 로 헐겁게 찾으면
+# 테마의 «fill-opacity» 가 자리 이름으로 잡힌다 (render_report.spec_heights 가 그 꼴이다).
+FILL_SLOT = re.compile(r"<!--\s*SECTION:(fill-[a-z0-9\-]+)\s*-->")
 
 
 class Gate(object):
@@ -1328,6 +1348,322 @@ def check_md(g, md_dir, items, killer_nos, from_exam=True):
         g.check(not badkind, "%s · issue 갈래 닫힌 목록" % base, " / ".join(badkind[:4]))
 
 
+# ── 빌더가 채우는 칸 — 회귀 잠금 ──────────────────────────────────────────
+# 규격 정본은 references/report-schema.md § 「빌더가 채우는 칸」 이다.
+#
+# **왜 데이터를 재는가** — 렌더러의 치환자에는 「만약」이 없다. `em` · `key` · `num` 이
+# 한 줄이라도 빠지면 «{{em}}» 이 글자로 남아 **렌더가 통째로 실패한다.** 지금까지는
+# 렌더가 죽고 나서야 알았다. 여기서 먼저 잡으면 한 벌 57초를 굽기 전에 안다.
+# 여섯 검사 모두 report.json 과 판형 **글자**만 본다 — 크롬이 없어도 잰다.
+
+
+def _is_summary_data(d):
+    """요약본 report.json 인가. 표시 둘을 본다.
+
+    `fill_blocks` 는 `--summary` 일 때만 나가고, `items` 섹션은 상세본만 싣는다.
+    요약본은 유형을 상위 셋으로 **자르므로** 강조 지목이 그 밖으로 밀릴 수 있다 —
+    그때는 차단이 아니라 주의다. 이름이 틀린 것과 순위에 밀린 것은 다른 일이다.
+    """
+    if "fill_blocks" in d:
+        return True
+    secs = d.get("sections")
+    return isinstance(secs, list) and "items" not in secs
+
+
+def _slot_bad(row, key, allowed, where):
+    """칸 하나를 잰다 — 있는가 · 문자열인가 · 닫힌 목록 안인가.
+
+    참/거짓을 막는 것이 핵심이다. `em: true` 는 종이에 `class="True"` 로 나가
+    **아무 것도 칠하지 않으면서 아무 것도 알리지 않는다.**
+    """
+    if not isinstance(row, dict):
+        return "%s 이 «칸 묶음» 이 아닙니다 (%r)" % (where, row)
+    if key not in row:
+        return "%s 에 %s 가 없습니다" % (where, key)
+    v = row.get(key)
+    if not isinstance(v, str):
+        return "%s 의 %s 가 %r 입니다 — 참/거짓이 아니라 문자열입니다" % (where, key, v)
+    if allowed is not None and v not in allowed:
+        return "%s 의 %s 가 «%s» 입니다 — %s 중 하나입니다" % (
+            where, key, v, " 또는 ".join("«%s»" % a for a in allowed))
+    return ""
+
+
+def _row_at(rows, i):
+    r = rows[i] if i < len(rows) else None
+    name = ""
+    if isinstance(r, dict):
+        name = str(r.get("name") or r.get("label") or "")[:16]
+    return "%d번째 줄%s" % (i + 1, (" «%s»" % name) if name else "")
+
+
+def _em_rows(rows):
+    return [str(r.get("name")) for r in rows
+            if isinstance(r, dict) and str(r.get("em") or "").strip() == "em"]
+
+
+def check_em_slots(g, d):
+    """① `em` 이 **모든 줄**에 있는가 — types · chapters · radar.axes.
+
+    한 줄이라도 빠지면 렌더가 통째로 실패한다. 그래서 빈 값이라도 모든 줄에 온다.
+    """
+    where = [("types", d.get("types") or []), ("chapters", d.get("chapters") or [])]
+    rd = d.get("radar")
+    if isinstance(rd, dict) and (rd.get("axes") or []):
+        where.append(("radar.axes", rd["axes"]))
+
+    total = sum(len(rows) for _, rows in where if isinstance(rows, list))
+    if not total:
+        g.warn(True, "데이터 · 막대 em 잴 곳 없음",
+               "types 도 chapters 도 radar.axes 도 비어 있어 em 을 한 줄도 재지 못했습니다")
+        return
+
+    bad = []
+    for label, rows in where:
+        if not isinstance(rows, list):
+            bad.append("%s 가 목록이 아닙니다" % label)
+            continue
+        for i in range(len(rows)):
+            msg = _slot_bad(rows[i], "em", EM_OK, "%s 의 %s" % (label, _row_at(rows, i)))
+            if msg:
+                bad.append(msg)
+    g.check(not bad, "데이터 · em 이 모든 줄에",
+            "%s (%d줄 중 %d줄) — 빈 값이라도 모든 줄에 옵니다. 한 줄만 빠져도 "
+            "«{{em}}» 이 남아 렌더가 통째로 실패합니다 (report-schema.md § 빌더가 채우는 칸)"
+            % (" / ".join(bad[:4]), total, len(bad)))
+
+
+def check_card_slots(g, d):
+    """② `num` · `unit` · `key` 가 **모든 숫자 카드**에 있는가.
+
+    §3 — 값은 크게, 단위는 작게 붙여 한 덩어리로 둔다. 판형이 둘을 따로 받는다.
+    그리고 §0-2 — «말» 카드(`key`)는 넷 중 하나뿐이다.
+    """
+    cards = (d.get("overview") or {}).get("cards")
+    if not isinstance(cards, list) or not cards:
+        g.warn(True, "데이터 · 숫자 카드 잴 곳 없음",
+               "overview.cards 가 비어 있어 num·unit·key 를 한 칸도 재지 못했습니다")
+        return
+
+    bad = []
+    for i in range(len(cards)):
+        for key in CARD_SLOTS:
+            msg = _slot_bad(cards[i], key, KEY_OK if key == "key" else None,
+                            "카드 %s" % _row_at(cards, i))
+            if msg:
+                bad.append(msg)
+    g.check(not bad, "데이터 · num·unit·key 가 모든 카드에",
+            "%s (카드 %d개) — 한 칸만 빠져도 «{{num}}» 이 남아 렌더가 통째로 실패합니다 "
+            "(layout-grammar.md §3)" % (" / ".join(bad[:4]), len(cards)))
+
+    word = [str(c.get("label") or c.get("value") or "?") for c in cards
+            if isinstance(c, dict) and str(c.get("key") or "").strip() == "key"]
+    g.check(len(word) <= 1, "데이터 · 강조 카드 하나",
+            "«말» 카드가 %d개입니다 (%s) — 넷 중 둘을 칠하면 둘 다 안 보입니다 "
+            "(layout-grammar.md §0-2 · §3)" % (len(word), " · ".join(word)))
+
+
+def check_emphasis_link(g, d, exam):
+    """③ `emphasis` 가 지목한 이름이 **실제 줄에 있고 그 줄에만** 칠해졌는가.
+
+    exam.json 의 지목이 report.json 까지 살아서 갔는가를 잰다. 두 갈래로 샌다 —
+    지목이 조용히 사라지거나(칠할 줄을 안 칠한다), 지목이 없는데 무언가
+    칠해지거나(§6 «1위를 자동으로 칠하지 않는다»). 둘 다 종이만 봐서는 모른다.
+    """
+    src = exam if isinstance(exam, dict) and exam.get("emphasis") is not None else d
+    em = src.get("emphasis")
+    if em is None:
+        em = {}
+    if not isinstance(em, dict):
+        g.check(False, "데이터 · 강조 지목 꼴",
+                'emphasis 가 %r 입니다 — {"types": "…", "chapters": "…"} 꼴이어야 합니다' % (em,))
+        return
+    if exam is None and not em:
+        g.warn(True, "데이터 · 강조 지목 대조 못 함",
+               "--exam 을 주지 않아 «지목한 이름이 실제 줄에 있는가» 를 대조하지 "
+               "못했습니다 (아래 «칠한 줄 하나» 만 쟀습니다)")
+
+    is_sum = _is_summary_data(d)
+    for field, label in (("types", "유형별"), ("chapters", "출제별")):
+        rows = d.get(field) or []
+        if not isinstance(rows, list) or not rows:
+            continue
+        names = [str(r.get("name")) for r in rows if isinstance(r, dict)]
+        painted = _em_rows(rows)
+        want = em.get(field)
+        want = str(want).strip() if want not in (None, "") else ""
+
+        g.check(len(painted) <= 1, "데이터 · %s 칠한 줄 하나" % label,
+                "%s 막대에 강조가 %d줄입니다 (%s) — 칠할 행은 하나만 지목합니다 "
+                "(layout-grammar.md §6)" % (label, len(painted), " · ".join(painted)))
+
+        if not want:
+            g.check(not painted, "데이터 · %s 지목 없으면 안 칠한다" % label,
+                    "%s 에 지목(exam.json 의 emphasis.%s)이 없는데 «%s» 가 칠해졌습니다 — "
+                    "1위를 자동으로 칠하지 않습니다 (§6 · §11)"
+                    % (label, field, " · ".join(painted)))
+            continue
+
+        if want not in names:
+            # 요약본은 유형을 상위 셋으로 자른다 — 순위에 밀린 것은 이름이 틀린 것과 다르다
+            if is_sum and field == "types":
+                g.warn(True, "%s 강조가 요약본 밖" % label,
+                       "«%s» 는 요약본에 실리는 상위 %d줄 밖이라 요약본에는 안 칠해집니다"
+                       % (want, len(names)))
+            else:
+                g.check(False, "데이터 · %s 지목한 줄이 있다" % label,
+                        "«%s» 를 지목했는데 그런 줄이 없습니다. 있는 줄: %s — "
+                        "조용히 안 칠하고 넘어가지 않습니다 (§6)" % (want, " · ".join(names)))
+            continue
+
+        g.check(painted == [want], "데이터 · %s 지목한 줄이 칠해졌다" % label,
+                "«%s» 를 지목했는데 칠해진 줄은 %s — 지목이 report.json 까지 "
+                "못 갔습니다 (§6)"
+                % (want, ("«%s»" % " · ".join(painted)) if painted else "없습니다"))
+
+
+def check_radar_slots(g, d):
+    """④ `radar.ok` 가 «1» 인데 축이 3 미만이면 막는다.
+
+    §9-2 — 둘로는 삼각형도 안 된다. `ok` 는 참/거짓이 아니라 «1» 또는 «» 다:
+    판형이 `data-ok` 에 그대로 꽂으므로 `true` 가 오면 상자가 켜진 채 빈 채로 나간다.
+    """
+    rd = d.get("radar")
+    if rd is None:
+        g.warn(True, "데이터 · 레이다 칸 잴 것 없음",
+               "report.json 에 radar 가 없습니다 — 빌더가 펴지 않았습니다")
+        return
+    if not isinstance(rd, dict):
+        g.check(False, "데이터 · 레이다 꼴", "radar 가 %r 입니다" % (rd,))
+        return
+
+    msg = _slot_bad(rd, "ok", RADAR_OK, "radar")
+    g.check(not msg, "데이터 · 레이다 ok 값",
+            "%s — 판형의 data-ok 에 그대로 꽂힙니다 (§9-2)" % msg)
+
+    ok = rd.get("ok") if isinstance(rd.get("ok"), str) else ""
+    axes = rd.get("axes") or []
+    if ok.strip() != "1":
+        return
+    g.check(len(axes) >= 3, "데이터 · 레이다 ok=1 이면 축 셋 이상",
+            "radar.ok 가 «1» 인데 축이 %d개입니다 — 셋부터 그립니다. 둘로는 삼각형도 "
+            "안 됩니다 (§9-2)" % len(axes))
+    g.check(bool(str(rd.get("points") or "").strip()), "데이터 · 레이다 꼭짓점",
+            "radar.ok 가 «1» 인데 points 가 비었습니다 — 켜 놓고 점을 안 찍으면 "
+            "빈 고리만 인쇄됩니다 (§9-2)")
+
+
+def check_steps_flow_data(g, d):
+    """⑤ 한 «푸는 순서» 에 갈린 칸(`em`)이 둘 이상이면 막는다.
+
+    §5 — 실제로 갈린 칸은 하나다. 그리고 네 칸(text·conclusion·em·value)이
+    **모든 줄에** 온다 — 화살표가 없으면 `conclusion` 은 빈 문자열이지 없는 칸이 아니다.
+    """
+    lists = []
+    for k in d.get("killer") or []:
+        if isinstance(k, dict) and k.get("steps_flow") is not None:
+            lists.append((k.get("no"), k.get("steps_flow")))
+    if not lists:
+        g.warn(True, "데이터 · 푸는 순서 잴 곳 없음",
+               "killer[].steps_flow 가 하나도 없어 갈린 칸 규칙을 재지 못했습니다")
+        return
+
+    bad, many = [], []
+    for no, rows in lists:
+        if not isinstance(rows, list):
+            bad.append("%s번의 steps_flow 가 목록이 아닙니다" % no)
+            continue
+        for i in range(len(rows)):
+            for key in STEP_SLOTS:
+                msg = _slot_bad(rows[i], key, EM_OK if key == "em" else None,
+                                "%s번 푸는 순서 %d번째 칸" % (no, i + 1))
+                if msg:
+                    bad.append(msg)
+        n = len([r for r in rows
+                 if isinstance(r, dict) and str(r.get("em") or "").strip() == "em"])
+        if n > 1:
+            many.append("%s번에 ★ 가 %d칸" % (no, n))
+
+    g.check(not bad, "데이터 · 푸는 순서 네 칸",
+            "%s (목록 %d개) — 빈 값이라도 모든 줄에 옵니다 (report-schema.md)"
+            % (" / ".join(bad[:4]), len(lists)))
+    g.check(not many, "데이터 · 목록마다 갈린 칸 하나",
+            "%s — 실제로 갈린 칸은 하나입니다 (layout-grammar.md §5 · md-contract.md §3-2)"
+            % " / ".join(many[:4]))
+
+
+def check_fill_slots(g, d):
+    """⑥ `fill_blocks[].section` 이 판형의 `SECTION:fill-*` 이름과 맞는가.
+
+    안 맞으면 렌더러는 **막지 않고 조용히 뺀다** — `fill_candidates` 가 「켤 자리
+    없음」 한 줄만 남긴다. 요약본 아래가 53mm 비어도 아무 것도 안 켜졌던 사고가
+    그것이다(수학 목업에서야 드러났다).
+
+    `key` 를 `section` 자리에 적는 것도 막는다. 「study-plan」은 **요약본 판형에도
+    있는 진짜 섹션 이름**이라, 렌더러가 채움 자리 대신 그 섹션을 켠다.
+    """
+    fb = d.get("fill_blocks")
+    if fb is None:
+        return                       # 상세본은 채움 블록을 갖지 않는다 (--summary 전용)
+    if not isinstance(fb, list):
+        g.check(False, "데이터 · 채움 블록 꼴", "fill_blocks 가 %r 입니다" % (fb,))
+        return
+    if fb and not _is_summary_data(d):
+        g.check(False, "데이터 · 채움 블록은 요약본만",
+                "상세본 report.json 에 채움 블록이 %d개 있습니다 — "
+                "--summary 일 때만 나갑니다" % len(fb))
+        return
+    if not fb:
+        g.warn(True, "데이터 · 채움 블록 잴 곳 없음",
+               "fill_blocks 가 비어 있어 자리 이름을 하나도 재지 못했습니다")
+        return
+
+    if not os.path.exists(SUMMARY_TPL):
+        g.check(False, "데이터 · 채움 자리 대조",
+                "요약본 판형을 찾지 못해 자리 이름을 대조하지 못했습니다: %s" % SUMMARY_TPL)
+        return
+    slots = sorted(set(FILL_SLOT.findall(io.open(SUMMARY_TPL, encoding="utf-8").read())))
+    g.check(bool(slots), "데이터 · 판형에 채움 자리",
+            "요약본 판형에 «SECTION:fill-…» 자리가 하나도 없습니다 — 대조할 것이 없습니다")
+    if not slots:
+        return
+
+    bad, seen = [], {}
+    for i, b in enumerate(fb, 1):
+        if not isinstance(b, dict):
+            bad.append("%d번째 블록이 «칸 묶음» 이 아닙니다" % i)
+            continue
+        name = str(b.get("title") or b.get("key") or i)
+        sec = b.get("section")
+        if not isinstance(sec, str) or not sec.strip():
+            bad.append("«%s» 에 section 이 없습니다 — 렌더러가 key 로 대신 찾다가 "
+                       "엉뚱한 섹션을 켭니다" % name)
+            continue
+        sec = sec.strip()
+        if sec not in slots:
+            bad.append("«%s» 의 자리 이름 «%s» 가 판형에 없습니다" % (name, sec))
+            continue
+        seen.setdefault(sec, []).append(name)
+
+    dup = ["%s 에 %s" % (s, " · ".join(v)) for s, v in seen.items() if len(v) > 1]
+    g.check(not bad, "데이터 · 채움 자리 이름",
+            "%s — 판형이 내준 자리는 %s 입니다. key(상세본 섹션 이름)와 "
+            "section(판형 자리 이름)은 **다릅니다** (report-schema.md § fill_blocks)"
+            % (" / ".join(bad[:4]), " · ".join(slots)))
+    g.check(not dup, "데이터 · 한 자리에 한 블록",
+            "%s — 한 자리에 둘을 넣으면 뒤엣것이 앞엣것을 덮습니다" % " / ".join(dup))
+
+
+def check_builder_fields(g, d, exam=None):
+    """빌더가 채우는 칸 여섯 — em · num/unit/key · 강조 지목 · 레이다 · 푸는 순서 · 채움 자리."""
+    check_em_slots(g, d)
+    check_card_slots(g, d)
+    check_emphasis_link(g, d, exam)
+    check_radar_slots(g, d)
+    check_steps_flow_data(g, d)
+    check_fill_slots(g, d)
+
+
 def check_data(g, path):
     d = json.load(io.open(path, encoding="utf-8"))
     meta = d.get("meta") or {}
@@ -1398,10 +1734,15 @@ def check_data(g, path):
 
 def parse_args(argv):
     out, data, exam, md = None, None, None, None
+    dataonly = False
     i = 0
     while i < len(argv):
         a = argv[i]
-        if a == "--exam" and i + 1 < len(argv):
+        if a == "--data" and i + 1 < len(argv):
+            # 종이 없이 데이터만 잰다 — 두 번째 자리(report.json)를 첫 자리로 받는다
+            data, dataonly = argv[i + 1], True
+            i += 2
+        elif a == "--exam" and i + 1 < len(argv):
             exam = argv[i + 1]
             i += 2
         elif a == "--md" and i + 1 < len(argv):
@@ -1417,7 +1758,7 @@ def parse_args(argv):
             i += 1
         else:
             raise SystemExit("인자가 너무 많습니다: %s\n%s" % (a, __doc__))
-    return out, data, exam, md
+    return out, data, exam, md, dataonly
 
 
 def main():
@@ -1428,8 +1769,22 @@ def main():
     if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(1)
-    out, datapath, exampath, mddir = parse_args(sys.argv[1:])
+    out, datapath, exampath, mddir, dataonly = parse_args(sys.argv[1:])
     g = Gate()
+
+    exam = None
+    if exampath:
+        exam = json.load(io.open(exampath, encoding="utf-8"))
+
+    # ── 데이터만 재는 길 — 크롬도 산출 폴더도 없이 돈다
+    if dataonly:
+        print("\n=== 완료 게이트 (데이터만) ===")
+        data = check_data(g, datapath)
+        check_builder_fields(g, data, exam)
+        g.warn(True, "조판 미검사",
+               "--data 로 돌려 종이를 하나도 보지 않았습니다 — 쪽수·채움률·잘림·"
+               "쪽번호는 재지 못했습니다. 이것만으로 완료를 말하지 않습니다")
+        sys.exit(g.report())
 
     print("\n=== 완료 게이트 ===")
     htmls = [os.path.join(out, f) for f in sorted(os.listdir(out)) if f.endswith(".html")]
@@ -1438,6 +1793,9 @@ def main():
     data = None
     if datapath:
         data = check_data(g, datapath)
+        # 빌더가 채우는 칸 여섯 — 종이가 아니라 데이터를 잰다.
+        # 렌더가 죽고 나서야 알던 것을 여기서 먼저 말한다.
+        check_builder_fields(g, data, exam)
     else:
         g.warn(True, "report.json 미검사", "데이터 검사를 하려면 두 번째 인자로 주세요")
 
@@ -1466,8 +1824,8 @@ def main():
     # 문항도 킬러 목록도 **같은 파일**에서 가져온다. --exam 을 줬는데 report.json 의
     # 킬러 번호를 섞으면 다른 회차의 번호로 남의 MD 를 나무라게 된다.
     items, killer_nos, src = [], set(), None
-    if exampath:
-        src = json.load(io.open(exampath, encoding="utf-8"))
+    if exam is not None:
+        src = exam
     elif data is not None:
         src = data
     if src is not None:

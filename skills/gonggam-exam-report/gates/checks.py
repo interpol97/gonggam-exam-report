@@ -6,6 +6,7 @@
     python gates/checks.py mdlink         MD 문장이 리포트에 실렸나 → "md link ok"
     python gates/checks.py summary        요약본이 A4 한 장인가 → "summary one page ok"
     python gates/checks.py regress        옛 결함 셋이 되살아났나 → "regress ok"
+    python gates/checks.py fields         빌더가 채우는 칸이 규격대로인가 → "fields ok"
 
 전부 **못 재면 통과하지 않는다.** 잴 대상이 없으면 그것 자체가 실패다 —
 0개를 재고 통과하는 것이 가장 나쁜 검사다.
@@ -232,6 +233,66 @@ def regress():
     return 0
 
 
+# ──────────────────────────────────────────────────────── fields
+def fields():
+    """빌더가 채우는 칸 여섯이 **규격대로 채워지는가** — em · num/unit/key ·
+    강조 지목 · 레이다 · 푸는 순서 · 채움 자리.
+
+    크롬을 쓰지 않는다. 여섯 다 report.json 과 판형 글자만 재기 때문이다 —
+    크롬이 없는 자리에서도 이 게이트는 돈다.
+
+    **잰 개수를 함께 찍는다.** 통과만 찍으면 «칸이 하나도 없어서 통과» 를
+    구별할 수 없다 — 0개를 재고 통과하는 것이 가장 나쁜 검사다.
+    표본은 examples/report.sample.json 이 아니라 examples/samsung_h1_en 에서
+    갓 짓는다. 표본 json 두 개에는 새 칸이 없어 아직 렌더도 되지 않는다.
+    """
+    if not os.path.isdir(EX):
+        return fail("표본이 없다: %s" % EX)
+    exam = os.path.join(EX, "exam.json")
+    tmp = tempfile.mkdtemp(prefix="gate-fields-")
+    try:
+        # 강조를 지목한 exam.json 을 따로 짓는다 — 삼성고 원본에는 emphasis 가 없어
+        # 「지목이 report.json 까지 갔는가」를 잴 수 없다
+        ex = json.load(io.open(exam, encoding="utf-8"))
+        ex["emphasis"] = {"types": "어법", "chapters": "교과서 1과"}
+        exam_em = os.path.join(tmp, "exam_em.json")
+        io.open(exam_em, "w", encoding="utf-8").write(json.dumps(ex, ensure_ascii=False))
+
+        seen = {"em": 0, "카드": 0, "레이다 축": 0, "푸는 순서": 0, "채움 자리": 0, "강조": 0}
+        for label, flag, ex_path in (("상세본", "--detail", exam_em),
+                                     ("요약본", "--summary", exam_em)):
+            out = os.path.join(tmp, "%s.json" % flag.strip("-"))
+            code, log = run(["scripts/report_build.py", ex_path, EX, out, flag])
+            if code != 0:
+                return fail("%s 빌드 실패\n       %s" % (label, log[-400:].replace("\n", " ")))
+            code, log = run(["scripts/gate_check.py", "--data", out, "--exam", ex_path])
+            blocked = [l.strip() for l in log.splitlines() if l.strip().startswith("[차단]")]
+            if code != 0:
+                return fail("%s 이 새 칸 검사에 막혔다\n       %s"
+                            % (label, " / ".join(blocked)[:500]))
+
+            d = json.load(io.open(out, encoding="utf-8"))
+            rows = (d.get("types") or []) + (d.get("chapters") or [])
+            seen["em"] += len([r for r in rows if "em" in r])
+            seen["강조"] += len([r for r in rows if r.get("em") == "em"])
+            seen["카드"] += len([c for c in (d.get("overview") or {}).get("cards") or []
+                               if all(k in c for k in ("num", "unit", "key"))])
+            seen["레이다 축"] += len((d.get("radar") or {}).get("axes") or [])
+            seen["푸는 순서"] += len([k for k in d.get("killer") or [] if k.get("steps_flow")])
+            seen["채움 자리"] += len([b for b in d.get("fill_blocks") or [] if b.get("section")])
+            print("  · %s — 게이트 통과" % label)
+
+        print("  잰 것: %s" % " · ".join("%s %d" % (k, v) for k, v in seen.items()))
+        empty = [k for k, v in seen.items() if not v]
+        if empty:
+            return fail("%s 를 0개 재고 통과했다 — 표본이 그 칸을 안 쓰면 "
+                        "회귀 잠금이 아니다" % " · ".join(empty))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    print("fields ok")
+    return 0
+
+
 # ──────────────────────────────────────────────────────── shots (G13 준비)
 def shots(out_dir=".gatework/shots"):
     """수동 검수(G13)용 — 만들어진 PDF 를 장마다 PNG 로 떠 둔다.
@@ -295,5 +356,7 @@ if __name__ == "__main__":
         raise SystemExit(summary())
     if a[0] == "regress":
         raise SystemExit(regress())
+    if a[0] == "fields":
+        raise SystemExit(fields())
     print(__doc__)
     raise SystemExit(1)

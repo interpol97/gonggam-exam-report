@@ -8,7 +8,7 @@ Scope: 네 갈래 병렬 작업의 결과를 **하나로 묶어** 잰다.
 (스킬 폴더 뿌리에서 돌린다. 먼저 `--print` 로 명령을 다 읽는다.)
 
 원칙 — **ALL MET 이 아니면 완료 보고를 쓰지 않는다.**
-그리고 통과만 보고 믿지 않는다. 양성 대조(G7·G8·G9)가 ✕ 를 내는 것을 함께 본다.
+그리고 통과만 보고 믿지 않는다. 양성 대조(G7·G8·G10·G15)가 ✕ 를 내는 것을 함께 본다.
 
 ---
 
@@ -110,3 +110,26 @@ Scope: 네 갈래 병렬 작업의 결과를 **하나로 묶어** 잰다.
              ① 이슈 섹션이 상세본에 안 실리던 것(자동 게이트 12개는 전부 통과했다)
              ② 요약본 총평 상자가 내용보다 훨씬 커서 «빈 파란 상자» 로 보이던 것
              둘 다 눈으로만 보이는 것이었다. 이 게이트를 둔 까닭이 그것이다.
+
+- [x] G14: 빌더가 채우는 칸 여섯이 규격대로 채워진다
+  EVIDENCE: 2026-09-23T19:51:52 exit=0 match=yes cwd=C:\dev\apps\gonggam-claude-plugins\plugins\gonggam-exam-report\skills\gonggam-exam-report shell=cmd.exe sha256=43e6b5be5bbf bytes=185 0.4s
+  NOTE: em · num/unit/key · 강조 지목 · 레이다 · 푸는 순서 · 채움 자리.
+        렌더러의 치환자에는 「만약」이 없다 — 한 줄이라도 칸이 빠지면 «{{em}}» 이 글자로
+        남아 **렌더가 통째로 실패한다.** 지금까지는 렌더가 죽고 나서야 알았다.
+        표본은 examples/report.sample.json 이 아니라 examples/samsung_h1_en 에서 갓 짓는다.
+        표본 json 둘에는 새 칸이 없어 아직 렌더조차 되지 않는다 (HANDOFF § 5-2).
+        **잰 개수를 함께 찍는다** — 0개를 재고 통과하면 회귀 잠금이 아니다.
+        크롬을 쓰지 않는다. 여섯 다 report.json 과 판형 글자만 잰다.
+  CHECK: python gates/checks.py fields
+  EXPECT: fields ok
+
+- [x] G15: **양성 대조** — 새 칸이 어긋나면 정말 막는가 (열아홉 갈래)
+  EVIDENCE: 2026-09-23T19:51:52 exit=0 match=yes cwd=C:\dev\apps\gonggam-claude-plugins\plugins\gonggam-exam-report\skills\gonggam-exam-report shell=cmd.exe sha256=5bdf866d6542 bytes=1528 2.0s
+  NOTE: 칸을 빼고 · 참/거짓을 넣고 · 지목을 지우고 · 축을 둘로 줄이고 · ★ 를 둘 찍고 ·
+        자리 이름에 key 를 적어 본다. 막히는 것만 보지 않고 **그 검사가 막았는지**
+        차단 줄의 이름까지 본다 — 엉뚱한 검사가 막아도 「OK」 가 찍히면 지으려던 검사는
+        죽은 채로 남는다.
+        멀쩡한 표본 셋(상세본·요약본·강조를 지목한 상세본)이 **통과하는 것도 함께** 본다.
+        잡는 것과 안 잡는 것을 둘 다 확인한다.
+  CHECK: python gates/negative.py fields
+  EXPECT: negative control ok

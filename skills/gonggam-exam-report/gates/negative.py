@@ -7,6 +7,7 @@
     python gates/negative.py md        MD 대조가 막는가 (다섯 갈래)
     python gates/negative.py summary   요약본이 2쪽이면 막는가
     python gates/negative.py stress    긴 내용에서 쪽수가 어긋나면 막는가
+    python gates/negative.py fields    빌더가 채우는 칸이 어긋나면 막는가 (열아홉 갈래)
 
 전부 「막혀야 하는데 막혔다」면 exit 0 과 `negative control ok` 를 찍는다.
 하나라도 **통과해 버리면** exit 1 — 검사기가 죽어 있다는 뜻이다.
@@ -181,7 +182,174 @@ def case_stress():
         shutil.rmtree(tmp, ignore_errors=True)
 
 
-CASES = {"md": case_md, "summary": case_summary, "stress": case_stress}
+# ──────────────────────────────────────────── 빌더가 채우는 칸 (em·key·radar·…)
+def _blocked_by(out, needle):
+    """막혔는가, 그리고 **그 검사가** 막았는가.
+
+    막히기만 하면 통과로 치면 안 된다 — 엉뚱한 검사가 막아도 «OK» 가 찍혀,
+    정작 지으려던 검사는 죽어 있는 채로 남는다. 차단 줄의 이름까지 본다.
+    """
+    for line in out.splitlines():
+        if line.strip().startswith("[차단]") and needle in line:
+            return True
+    return False
+
+
+def _deep(d):
+    return json.loads(json.dumps(d, ensure_ascii=False))
+
+
+def _build(exam_path, out_path, summary=False):
+    args = ["scripts/report_build.py", exam_path, EX, out_path,
+            "--summary" if summary else "--detail"]
+    code, out = run(args)
+    return code, out
+
+
+def case_fields():
+    """report.json 의 새 칸들을 열아홉 가지로 어긋나게 만들어 게이트가 막는지 본다.
+
+    **양성 대조만으로는 모자란다** — 멀쩡한 표본이 통과하는 것을 먼저 본다.
+    「0개를 재고 통과하는 검사」와 「멀쩡한 것을 막는 검사」는 둘 다 못 쓴다.
+
+    표본은 examples/report.sample.json 이 아니라 **examples/samsung_h1_en 에서
+    갓 지은 것**을 쓴다. 표본 json 두 개는 새 칸이 없어 아직 렌더조차 되지 않는다
+    (HANDOFF § 5-2). 크롬은 쓰지 않는다 — 여섯 검사 전부 글자만 잰다.
+    """
+    if not os.path.isdir(EX):
+        print("  표본이 없다: %s" % EX)
+        return 1
+    exam = os.path.join(EX, "exam.json")
+    tmp = tempfile.mkdtemp(prefix="neg-fields-")
+    try:
+        r, sm = os.path.join(tmp, "r.json"), os.path.join(tmp, "s.json")
+        for path, is_sum in ((r, False), (sm, True)):
+            code, out = _build(exam, path, is_sum)
+            if code != 0:
+                print("  빌드 실패: %s" % out[-300:].replace("\n", " "))
+                return 1
+
+        # 강조를 **지목한** 한 벌도 짓는다 — 지목이 report.json 까지 갔는지 보려면
+        # 지목이 있는 표본이 있어야 한다. 삼성고 exam.json 에는 emphasis 가 없다.
+        exam_em = os.path.join(tmp, "exam_em.json")
+        ex = json.load(io.open(exam, encoding="utf-8"))
+        ex["emphasis"] = {"types": "어법", "chapters": "교과서 1과"}
+        io.open(exam_em, "w", encoding="utf-8").write(json.dumps(ex, ensure_ascii=False))
+        rem = os.path.join(tmp, "rem.json")
+        code, out = _build(exam_em, rem, False)
+        if code != 0:
+            print("  강조 표본 빌드 실패: %s" % out[-300:].replace("\n", " "))
+            return 1
+
+        base_r = json.load(io.open(r, encoding="utf-8"))
+        base_s = json.load(io.open(sm, encoding="utf-8"))
+        base_e = json.load(io.open(rem, encoding="utf-8"))
+
+        ok = True
+
+        # ── 0. 멀쩡한 것이 통과하는가 (오검출 대조)
+        print("  — 멀쩡한 표본이 통과하는가")
+        for label, path, ex_path in (("상세본", r, exam), ("요약본", sm, exam),
+                                     ("강조 지목한 상세본", rem, exam_em)):
+            code, out = run(["scripts/gate_check.py", "--data", path, "--exam", ex_path])
+            good = code == 0
+            print("  %s %-34s %s" % ("OK  " if good else "★실패", label,
+                                     "통과" if good else "멀쩡한 표본을 막았다 — 오검출이다"))
+            if not good:
+                print("       %s" % " / ".join(l.strip() for l in out.splitlines()
+                                               if l.strip().startswith("[차단]"))[:400])
+            ok = good and ok
+
+        # ── 1~6. 일부러 어긋나게 만든 것을 막는가
+        def m(fn, base=None):
+            d = _deep(base if base is not None else base_r)
+            fn(d)
+            return d
+
+        def two_key(d):
+            d["overview"]["cards"][0]["key"] = "key"
+            d["overview"]["cards"][1]["key"] = "key"
+
+        def two_star(d):
+            for st in d["killer"][0]["steps_flow"][:2]:
+                st["em"] = "em"
+
+        cases = [
+            # (이름, 어긋난 report.json, 곁들일 exam.json, 막아야 할 검사 이름)
+            ("① em 이 한 줄 빠짐", m(lambda d: d["types"][2].pop("em")), exam,
+             "em 이 모든 줄에"),
+            ("① em 이 참/거짓", m(lambda d: d["chapters"][0].__setitem__("em", True)), exam,
+             "em 이 모든 줄에"),
+            ("① 레이다 축에 em 빠짐", m(lambda d: d["radar"]["axes"][0].pop("em")), exam,
+             "em 이 모든 줄에"),
+            ("② key 가 한 카드에 빠짐",
+             m(lambda d: d["overview"]["cards"][1].pop("key")), exam,
+             "num·unit·key 가 모든 카드에"),
+            ("② num 이 빠짐", m(lambda d: d["overview"]["cards"][0].pop("num")), exam,
+             "num·unit·key 가 모든 카드에"),
+            ("② 말 카드가 둘", m(two_key), exam, "강조 카드 하나"),
+            ("③ 지목한 줄이 안 칠해짐",
+             m(lambda d: [x.__setitem__("em", "") for x in d["types"]], base_e), exam_em,
+             "지목한 줄이 칠해졌다"),
+            ("③ 없는 줄을 지목", _deep(base_r), None, "지목한 줄이 있다"),
+            ("③ 지목 없는데 칠해짐 (1위 자동 강조)",
+             m(lambda d: d["types"][0].__setitem__("em", "em")), exam,
+             "지목 없으면 안 칠한다"),
+            ("③ 칠한 줄이 둘",
+             m(lambda d: [x.__setitem__("em", "em") for x in d["chapters"][:2]]), exam,
+             "칠한 줄 하나"),
+            ("④ ok=1 인데 축이 둘",
+             m(lambda d: d["radar"].__setitem__("axes", d["radar"]["axes"][:2])), exam,
+             "축 셋 이상"),
+            ("④ ok 가 참/거짓", m(lambda d: d["radar"].__setitem__("ok", True)), exam,
+             "레이다 ok 값"),
+            ("④ ok=1 인데 꼭짓점 없음",
+             m(lambda d: d["radar"].__setitem__("points", "")), exam, "레이다 꼭짓점"),
+            ("⑤ 한 목록에 ★ 가 둘", m(two_star), exam, "갈린 칸 하나"),
+            ("⑤ conclusion 칸이 빠짐",
+             m(lambda d: d["killer"][0]["steps_flow"][0].pop("conclusion")), exam,
+             "푸는 순서 네 칸"),
+            ("⑥ section 에 key 이름을 적음",
+             m(lambda d: d["fill_blocks"][0].__setitem__("section", "study-plan"), base_s),
+             exam, "채움 자리 이름"),
+            ("⑥ 판형에 없는 자리",
+             m(lambda d: d["fill_blocks"][1].__setitem__("section", "fill-nowhere"), base_s),
+             exam, "채움 자리 이름"),
+            ("⑥ section 이 아예 없음",
+             m(lambda d: d["fill_blocks"][0].pop("section"), base_s), exam,
+             "채움 자리 이름"),
+            ("⑥ 한 자리에 둘",
+             m(lambda d: d["fill_blocks"][1].__setitem__(
+                 "section", d["fill_blocks"][0]["section"]), base_s), exam,
+             "한 자리에 한 블록"),
+        ]
+
+        # 「없는 줄을 지목」은 exam.json 쪽을 어긋나게 만든다
+        bogus = os.path.join(tmp, "exam_bogus.json")
+        ex2 = _deep(ex)
+        ex2["emphasis"] = {"types": "없는유형"}
+        io.open(bogus, "w", encoding="utf-8").write(json.dumps(ex2, ensure_ascii=False))
+
+        print("  — 어긋난 것을 막는가")
+        for i, (name, broken, ex_path, needle) in enumerate(cases, 1):
+            path = os.path.join(tmp, "case%02d.json" % i)
+            io.open(path, "w", encoding="utf-8").write(json.dumps(broken, ensure_ascii=False))
+            code, out = run(["scripts/gate_check.py", "--data", path,
+                             "--exam", ex_path or bogus])
+            hit = code != 0 and _blocked_by(out, needle)
+            if code != 0 and not hit:
+                print("  ★실패 %-34s 막히긴 했는데 «%s» 가 아닌 다른 검사가 막았다"
+                      % (name, needle))
+                ok = False
+                continue
+            ok = report(name, hit, out) and ok
+        return 0 if ok else 1
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+CASES = {"md": case_md, "summary": case_summary, "stress": case_stress,
+         "fields": case_fields}
 
 if __name__ == "__main__":
     try:
