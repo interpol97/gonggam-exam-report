@@ -1,0 +1,3 @@
+{"kind": "plane-geometry", "no": 7, "reason": "blocked:plane-geometry:no_invariants", "source": "route.json", "at": "2026-09-21"}
+{"kind": "우주선그림", "no": 31, "reason": "unknown-kind:우주선그림", "source": "route.json", "at": "2026-09-21"}
+{"kind": "stat-chart", "no": 33, "reason": "blocked:stat-chart:labels_over_8", "source": "route.json", "at": "2026-09-21"}

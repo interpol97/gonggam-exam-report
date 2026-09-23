@@ -1,0 +1,9 @@
+/* gonggam — 공감에듀테크 민트·에메랄드. 자체 발행용 */
+:root{
+  --paper:#F1F6F4; --ink:#0E1F1C; --muted:#6B7A86; --line:#E3E9E7;
+  --primary:#0A7A4B; --primary-pale:#E3F5EC; --accent:#12A96A; --accent-pale:#E8F8F0;
+  --gray-pale:#F3F6F5; --zebra:#FAFCFB;
+  --cover-bg:linear-gradient(140deg,#0C1B18,#123A2C); --cover-fg:#FFFFFF;
+}
+.cover .brand{color:#34E3C4}
+.cover h1 .highlight{color:#34E3C4}

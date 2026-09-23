@@ -1,0 +1,12 @@
+/* mono — 무채색. 흑백 복사를 거치는 문서용.
+   색만으로 구분하지 않는다 — 굵기·테두리로 구분이 서야 한다 */
+:root{
+  --paper:#F4F4F5; --ink:#18181B; --muted:#71717A; --line:#D4D4D8;
+  --primary:#27272A; --primary-pale:#E4E4E7; --accent:#52525B; --accent-pale:#EFEFF1;
+  --gray-pale:#F4F4F5; --zebra:#FAFAFA;
+  --cover-bg:#18181B; --cover-fg:#FFFFFF;
+}
+.badge{border:1px solid currentColor}
+.bar-fill{background:repeating-linear-gradient(45deg,#3F3F46,#3F3F46 4px,#52525B 4px,#52525B 8px)}
+.cover .brand{color:#E4E4E7}
+.cover h1 .highlight{color:#D4D4D8}

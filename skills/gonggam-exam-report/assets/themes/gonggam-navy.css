@@ -1,0 +1,80 @@
+/* gonggam-navy — 공감학원 보고서 톤 (2026-09-21 지정)
+   원장님이 주신 「학생관리 보고서」 두 장에서 그대로 따왔다.
+   네이비 머리 띠 + 그 아래 벽돌빨강 가는 줄, 제목 앞 세로 막대,
+   네이비 표 머리글, 핵심은 분홍 바탕 + 빨강 테두리.
+
+   대비 검사 (규격 Q3)
+     본문 #1A1A1A / 흰 바탕      → 17.4:1   (4.5:1 넘음)
+     강조 #C0392B / 흰 바탕      →  5.6:1   (넘음)
+     흑백 변환 명도 차 네이비 17% ↔ 빨강 40% → 23%p  (20%p 넘음)
+   복사기를 거쳐도 두 색이 같은 회색이 되지 않는다. */
+
+:root{
+  --paper:#F4F5F7; --ink:#1A1A1A; --muted:#6B7280; --line:#DFE3E8;
+  --primary:#1C2B4A;            /* 네이비 — 제목·표 머리글·막대 */
+  --primary-pale:#EAEDF3;       /* 주색 밝기 92% */
+  --accent:#C0392B;             /* 벽돌빨강 — 강조·핵심 테두리 */
+  --accent-pale:#FCEEEC;        /* 강조색 밝기 94% */
+  --gray-pale:#F7F7F5; --zebra:#FAFBFC;
+  --cover-bg:linear-gradient(150deg,#16223B,#24365C);   /* 주색 ±18% */
+  --cover-fg:#FFFFFF;
+}
+
+/* ── 머리 띠 아래 빨강 가는 줄 — 이 톤의 서명 ───────────────── */
+.cover{border-bottom:5px solid var(--accent)}
+.hd{border-bottom:4px solid var(--accent)}           /* 요약본 머리글 */
+
+/* ── 섹션 제목 앞 세로 막대 ──────────────────────────────── */
+.section-title{
+  border-bottom:1px solid var(--line);
+  padding-left:13px; position:relative;
+  letter-spacing:-.01em;
+}
+.section-title::before{
+  content:""; position:absolute; left:0; top:2px; bottom:9px;
+  width:4px; background:var(--primary); border-radius:1px;
+}
+
+/* ── 표 — 네이비 머리글, 얇은 구분선 ─────────────────────── */
+thead th, th{background:var(--primary); color:#fff; letter-spacing:-.01em}
+td{border-bottom:1px solid var(--line)}
+
+/* ── 숫자 카드 — 흰 바탕 + 얇은 테두리 (색 면 대신) ─────────── */
+.info-card, .card, .diff-box, .box{
+  background:#fff; border:1px solid var(--line);
+}
+.info-card .value, .card .v, .nv, .diff-box .n{color:var(--primary)}
+
+/* ── 핵심·경고는 분홍 바탕 + 빨강 테두리 ───────────────────── */
+.callout{background:var(--accent-pale); border-left:4px solid var(--accent)}
+.issue{border-left:5px solid var(--accent)}
+.i-kind, .k-kind{background:var(--accent-pale); color:var(--accent)}
+
+/* ── 오답 근거는 이 톤에서도 노란 대신 분홍 계열로 ─────────── */
+.wrongs{background:var(--accent-pale); border:1px solid #F2D6D1}
+.wrongs .bt, .wrong-label{color:var(--accent)}
+
+/* ── 막대 — 기본은 네이비, 1위만 빨강(첨부 자료의 규칙) ────── */
+.bar-fill{background:var(--primary)}
+.bar-row:first-of-type .bar-fill{background:var(--accent)}
+
+/* ── 마무리 상자 — 네이비 면, 흰 글씨 ──────────────────────── */
+/* ⚠ 면을 어둡게 바꾸면 그 **안의 글자색도 전부** 다시 잡아야 한다.
+   처음엔 .quote·.desc 만 흰색으로 돌렸는데, 「다음 행동」 줄의 .nv 가
+   숫자 카드와 같은 네이비 글씨라 네이비 면 위에서 통째로 사라졌다.
+   요약본에서 가장 중요한 한 줄이 조용히 없어진 자리였다. */
+.final{background:var(--primary); color:#fff; border-color:var(--primary)}
+.final .quote{color:#fff}
+.final .desc{color:#DCE2EC}
+.final .nl{background:rgba(255,255,255,.14); color:#fff; border-color:rgba(255,255,255,.34)}
+.final .nv{color:#fff; font-weight:800}
+.final .next{color:#fff}
+
+/* ── 칩·태그 ──────────────────────────────────────────── */
+.chip{background:var(--primary-pale); color:var(--primary); border:1px solid #D7DCE6}
+.k-tag{background:var(--primary-pale); color:var(--primary)}
+
+/* ── 인쇄 — 색 면을 줄이고 선으로 버틴다 ───────────────────── */
+@media print{
+  .info-card, .card, .diff-box, .box{background:#fff}
+}

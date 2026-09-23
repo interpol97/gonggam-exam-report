@@ -1,0 +1,7 @@
+/* clean — 흰 바탕·남색. 기본값. 학부모 배포용 */
+:root{
+  --paper:#F2F5F9; --ink:#111827; --muted:#6B7280; --line:#E5E7EB;
+  --primary:#1E40AF; --primary-pale:#DBEAFE; --accent:#D97706; --accent-pale:#FEF3C7;
+  --gray-pale:#F3F4F6; --zebra:#FAFBFC;
+  --cover-bg:linear-gradient(140deg,#1E3A8A,#1E40AF); --cover-fg:#FFFFFF;
+}
