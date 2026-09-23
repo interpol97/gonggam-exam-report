@@ -419,7 +419,7 @@ STEP_EM = "★"
 STEP_ARROW = re.compile(r"\s*(?:→|->)\s*")
 
 
-def split_steps(rows):
+def split_steps(rows, notes=None):
     """푸는 순서 한 줄을 «하는 일 → 결론» 으로 가른다.
     규격: references/layout-grammar.md §5 · md-contract.md
 
@@ -432,21 +432,34 @@ def split_steps(rows):
     렌더러에 「만약」이 없으므로 세 칸 모두 **모든 줄에** 온다.
     """
     out = []
+    notes = [] if notes is None else notes   # 막지 않는다 — 사람이 본다
     for row in rows:
         t = row.strip()
         em = ""
         if t.startswith(STEP_EM):
             em, t = "em", t.lstrip(STEP_EM).strip()
-        parts = STEP_ARROW.split(t, 1)
-        out.append({"text": parts[0].strip(),
-                    "conclusion": parts[1].strip() if len(parts) > 1 else "",
-                    "em": em,
+        # **마지막** 화살표에서 가른다. 앞의 화살표는 «내용» 일 수 있다 —
+        # 영어 교정은 「leftover → leftovers」 처럼 화살표로 적는다. 첫 화살표에서
+        # 가르면 하는 일이 「leftover」 한 낱말만 남고 나머지가 통째로 결론이 됐다.
+        # 결론은 언제나 줄 «끝» 에 온다 (layout-grammar.md §5).
+        parts = STEP_ARROW.split(t)
+        if len(parts) > 1:
+            text, concl = " → ".join(p.strip() for p in parts[:-1]), parts[-1].strip()
+        else:
+            text, concl = t, ""
+        if len(parts) > 2:
+            # 화살표가 둘 이상이면 어디가 결론인지 기계가 확신할 수 없다.
+            # 마지막에서 가르되 **조용히 넘어가지 않는다** — 사람이 보고 정한다.
+            notes.append("푸는 순서 «%s…» 에 화살표가 %d개입니다 — 마지막에서 갈라 "
+                         "«%s» 를 결론으로 삼았습니다. 맞는지 보십시오 (§5)"
+                         % (text[:16], len(parts) - 1, concl[:24]))
+        out.append({"text": text, "conclusion": concl, "em": em,
                     "value": t})          # 옛 판형이 쓰던 {{value}} 를 살려 둔다
     marked = [s for s in out if s["em"]]
     if len(marked) > 1:
         return out, ["푸는 순서에 ★ 가 %d개입니다 (%s) — 갈린 칸은 하나입니다. "
-                     "하나만 남기십시오 (layout-grammar.md §0-2)"
-                     % (len(marked), " · ".join(s["text"][:14] for s in marked))]
+                             "하나만 남기십시오 (layout-grammar.md §0-2)"
+                             % (len(marked), " · ".join(s["text"][:14] for s in marked))]
     return out, []
 
 
@@ -1173,7 +1186,7 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
         # 두 꼴을 템플릿이 갈라 그릴 수 있게 kind 를 함께 넘긴다.
         answer = (rec["model_answer"] if rec["kind"] == "서술형"
                   else norm_answer(it.get("answer")))
-        steps, step_err = split_steps(rec["steps"])
+        steps, step_err = split_steps(rec["steps"], notes)
         for e in step_err:
             errors.append("%d번 킬러: %s" % (no, e))
         return {

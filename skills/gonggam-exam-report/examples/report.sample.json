@@ -5,451 +5,49 @@
     "logo_path": null,
     "logo_bg": "light"
   },
-  "meta": {
-    "school": "명지고등학교",
-    "grade": "H1",
-    "grade_label": "고1",
-    "term": "2026-1학기 중간고사",
-    "subject": "영어",
-    "year": "2026",
-    "total_items": 25,
-    "total_points": 100,
-    "scope": "교과서 1~3과 · 수능특강 12·14·18강 · 3월 학력평가 지문"
-  },
   "cover": {
     "subtitle": "2026학년도 1학기 중간고사 분석",
     "tags": [
       "출제 경향",
       "난이도 분석",
-      "킬러문항 5"
+      "킬러문항 4"
     ]
   },
-  "sections": [
-    "overview",
-    "items",
-    "type-chart",
-    "chapter-ratio",
-    "difficulty",
-    "killer",
-    "study-plan",
-    "parent-note",
-    "summary"
-  ],
   "overview": {
     "desc": "25문항 100점, 서술형 4문항 24점으로 출제되었습니다. 지문 출처가 교과서 밖으로 넓어진 것이 이번 회차의 가장 큰 변화입니다.",
     "highlight": "서술형 배점이 24점입니다. 객관식을 다 맞혀도 서술형에서 갈립니다.",
     "cards": [
       {
         "label": "총 문항",
-        "value": "25문항"
+        "value": "25문항",
+        "key": "",
+        "num": "25",
+        "unit": "문항"
       },
       {
         "label": "총점",
-        "value": "100점"
+        "value": "100점",
+        "key": "",
+        "num": "100",
+        "unit": "점"
       },
       {
         "label": "서술형",
-        "value": "4문항 24점"
+        "value": "4문항 24점",
+        "key": "",
+        "num": "4",
+        "unit": "문항 24점"
       },
       {
         "label": "지문 출처",
-        "value": "3갈래"
+        "value": "3갈래",
+        "key": "",
+        "num": "3",
+        "unit": "갈래"
       }
     ]
   },
-  "items": [
-    {
-      "no": 1,
-      "type": "세부내용",
-      "points": 3,
-      "difficulty": "중하",
-      "source": "교과서 1과",
-      "answer": "3",
-      "basis": "일치/불일치 — 본문 그대로 대조",
-      "confidence": "high"
-    },
-    {
-      "no": 2,
-      "type": "대의파악",
-      "points": 3,
-      "difficulty": "중",
-      "source": "교과서 1과",
-      "answer": "1",
-      "basis": "daeui:되풀이되는 말 = community garden",
-      "confidence": "high"
-    },
-    {
-      "no": 3,
-      "type": "어휘",
-      "points": 3,
-      "difficulty": "중하",
-      "source": "교과서 1과",
-      "answer": "4",
-      "basis": "voca:혼동어휘 adapt/adopt",
-      "confidence": "high"
-    },
-    {
-      "no": 4,
-      "type": "어법",
-      "points": 4,
-      "difficulty": "중상",
-      "source": "교과서 1과",
-      "answer": "2",
-      "basis": "golden:분사 vs 동사 — 주절에 본동사 이미 있음",
-      "confidence": "high"
-    },
-    {
-      "no": 5,
-      "type": "빈칸추론",
-      "points": 4,
-      "difficulty": "중상",
-      "source": "교과서 2과",
-      "answer": "5",
-      "basis": "binkan:원칙1 맥락 — 02번 주제문 되풀이 자리",
-      "confidence": "high"
-    },
-    {
-      "no": 6,
-      "type": "글의 흐름",
-      "points": 4,
-      "difficulty": "상",
-      "source": "교과서 2과",
-      "answer": "3",
-      "basis": "order:지칭 — this practice 가 가리킬 선행 문장",
-      "confidence": "high"
-    },
-    {
-      "no": 7,
-      "type": "세부내용",
-      "points": 3,
-      "difficulty": "하",
-      "source": "교과서 2과",
-      "answer": "2",
-      "basis": "도표 수치 직접 대조",
-      "confidence": "high"
-    },
-    {
-      "no": 8,
-      "type": "대의파악",
-      "points": 3,
-      "difficulty": "중",
-      "source": "교과서 2과",
-      "answer": "4",
-      "basis": "daeui:예시(농부 사례)를 주제로 잡는 함정",
-      "confidence": "high"
-    },
-    {
-      "no": 9,
-      "type": "어법",
-      "points": 4,
-      "difficulty": "중상",
-      "source": "교과서 2과",
-      "answer": "1",
-      "basis": "golden:관계대명사 what/that 구분",
-      "confidence": "high"
-    },
-    {
-      "no": 10,
-      "type": "어휘",
-      "points": 3,
-      "difficulty": "중",
-      "source": "교과서 3과",
-      "answer": "5",
-      "basis": "voca:유의어 sustain/maintain 문맥 판별",
-      "confidence": "high"
-    },
-    {
-      "no": 11,
-      "type": "빈칸추론",
-      "points": 5,
-      "difficulty": "상",
-      "source": "교과서 3과",
-      "answer": "2",
-      "basis": "binkan:원칙2 후반 위치 → 난도 상",
-      "confidence": "high"
-    },
-    {
-      "no": 12,
-      "type": "글의 흐름",
-      "points": 4,
-      "difficulty": "중상",
-      "source": "교과서 3과",
-      "answer": "4",
-      "basis": "order:연결 — However 앞뒤 의미 단절",
-      "confidence": "high"
-    },
-    {
-      "no": 13,
-      "type": "세부내용",
-      "points": 3,
-      "difficulty": "중하",
-      "source": "교과서 3과",
-      "answer": "3",
-      "basis": "안내문 조건 대조",
-      "confidence": "high"
-    },
-    {
-      "no": 14,
-      "type": "대의파악",
-      "points": 4,
-      "difficulty": "중",
-      "source": "부교재 수특 12강",
-      "answer": "1",
-      "basis": "daeui:제목 — 과잉일반화 오답 2·5",
-      "confidence": "high"
-    },
-    {
-      "no": 15,
-      "type": "어법",
-      "points": 4,
-      "difficulty": "상",
-      "source": "부교재 수특 12강",
-      "answer": "5",
-      "basis": "golden:도치 — 부정어 도치 후 조동사 위치",
-      "confidence": "high"
-    },
-    {
-      "no": 16,
-      "type": "어휘",
-      "points": 3,
-      "difficulty": "중",
-      "source": "부교재 수특 14강",
-      "answer": "2",
-      "basis": "voca:반의어 scarce/abundant",
-      "confidence": "high"
-    },
-    {
-      "no": 17,
-      "type": "빈칸추론",
-      "points": 5,
-      "difficulty": "상",
-      "source": "부교재 수특 14강",
-      "answer": "4",
-      "basis": "binkan:원칙4 부정어 없음 → 같은 말이 정답",
-      "confidence": "high"
-    },
-    {
-      "no": 18,
-      "type": "글의 흐름",
-      "points": 4,
-      "difficulty": "중상",
-      "source": "부교재 수특 18강",
-      "answer": "3",
-      "basis": "order:시간순서 — 연도 표지",
-      "confidence": "high"
-    },
-    {
-      "no": 19,
-      "type": "세부내용",
-      "points": 3,
-      "difficulty": "중하",
-      "source": "모의고사 3월",
-      "answer": "5",
-      "basis": "불일치 — 선지 3 수치 조작",
-      "confidence": "high"
-    },
-    {
-      "no": 20,
-      "type": "대의파악",
-      "points": 3,
-      "difficulty": "중",
-      "source": "모의고사 3월",
-      "answer": "2",
-      "basis": "daeui:요지 — 방향오류 오답 4",
-      "confidence": "high"
-    },
-    {
-      "no": 21,
-      "type": "어법",
-      "points": 4,
-      "difficulty": "중상",
-      "source": "모의고사 3월",
-      "answer": "1",
-      "basis": "golden:수일치 — 삽입구 뒤 주어 복수",
-      "confidence": "high"
-    },
-    {
-      "no": 22,
-      "type": "서술형",
-      "points": 6,
-      "difficulty": "상",
-      "source": "교과서 2과",
-      "answer": "본문참조",
-      "basis": "golden:어법 고쳐쓰기 — 능동/수동",
-      "confidence": "high"
-    },
-    {
-      "no": 23,
-      "type": "서술형",
-      "points": 6,
-      "difficulty": "중상",
-      "source": "교과서 3과",
-      "answer": "본문참조",
-      "basis": "daeui:요약문 완성 — 핵심어 2개",
-      "confidence": "high"
-    },
-    {
-      "no": 24,
-      "type": "서술형",
-      "points": 6,
-      "difficulty": "중상",
-      "source": "부교재 수특 12강",
-      "answer": "본문참조",
-      "basis": "조건 영작 — 관계사 필수",
-      "confidence": "high"
-    },
-    {
-      "no": 25,
-      "type": "서술형",
-      "points": 6,
-      "difficulty": "상",
-      "source": "모의고사 3월",
-      "answer": "본문참조",
-      "basis": "binkan:빈칸 완성 — 본문 패러프레이즈",
-      "confidence": "high"
-    }
-  ],
-  "types": [
-    {
-      "name": "서술형",
-      "count": 4,
-      "points": 24
-    },
-    {
-      "name": "어법",
-      "count": 4,
-      "points": 16
-    },
-    {
-      "name": "빈칸추론",
-      "count": 3,
-      "points": 14
-    },
-    {
-      "name": "대의파악",
-      "count": 4,
-      "points": 13
-    },
-    {
-      "name": "세부내용",
-      "count": 4,
-      "points": 12
-    },
-    {
-      "name": "글의 흐름",
-      "count": 3,
-      "points": 12
-    },
-    {
-      "name": "어휘",
-      "count": 3,
-      "points": 9
-    }
-  ],
-  "chapters": [
-    {
-      "name": "교과서 2과",
-      "count": 6,
-      "points": 24
-    },
-    {
-      "name": "교과서 3과",
-      "count": 5,
-      "points": 21
-    },
-    {
-      "name": "모의고사 3월",
-      "count": 4,
-      "points": 16
-    },
-    {
-      "name": "부교재 수특 12강",
-      "count": 3,
-      "points": 14
-    },
-    {
-      "name": "교과서 1과",
-      "count": 4,
-      "points": 13
-    },
-    {
-      "name": "부교재 수특 14강",
-      "count": 2,
-      "points": 8
-    },
-    {
-      "name": "부교재 수특 18강",
-      "count": 1,
-      "points": 4
-    }
-  ],
-  "chapter_desc": "교과서가 52점, 부교재가 24점, 모의고사가 24점입니다. 교과서만 봐서는 절반이 안 됩니다.",
-  "difficulty": {
-    "summary": "상 5문항 26점, 중상 9문항 37점으로 상위 구간이 63점을 차지합니다.",
-    "discriminator": "11·15·17·25번에서 갈렸습니다. 넷 다 빈칸·어법이고, 셋이 부교재·모의고사 지문입니다."
-  },
-  "killer": [
-    {
-      "no": 11,
-      "title": "빈칸추론 — 지속가능성 단락",
-      "why": "빈칸이 글 후반에 있어 앞 전체를 읽어야 합니다. 03번 주제문을 다시 말한 자리인데, 선지 1·3이 본문 어휘를 그대로 써서 매력적입니다.",
-      "steps": [
-        "앞 단락에서 되풀이되는 말을 찾는다 — sustain 계열",
-        "빈칸 앞뒤에 부정어가 없는지 본다. 없으면 같은 말이 정답",
-        "본문 어휘를 그대로 쓴 선지를 먼저 의심한다"
-      ],
-      "concepts": [
-        "빈칸 원칙1 맥락",
-        "원칙2 위치",
-        "패러프레이즈"
-      ]
-    },
-    {
-      "no": 15,
-      "title": "어법 — 부정어 도치",
-      "why": "Not only 가 문두에 나왔는데 조동사를 뒤로 보내지 않은 선지를 고르는 문항입니다. 도치를 배웠어도 실제 문장에서 놓칩니다.",
-      "steps": [
-        "문두 부정어를 표시한다",
-        "바로 뒤에 조동사가 왔는지 확인한다",
-        "주어와 동사의 수일치를 다시 본다"
-      ],
-      "concepts": [
-        "부정어 도치",
-        "조동사 위치",
-        "수일치"
-      ]
-    },
-    {
-      "no": 17,
-      "title": "빈칸추론 — 자원 희소성",
-      "why": "선지 넷이 모두 본문에 나온 표현입니다. 뜻이 아니라 «되풀이되는 말인가»로 갈라야 합니다.",
-      "steps": [
-        "단락마다 되풀이되는 명사를 적는다",
-        "빈칸 문장이 어느 말을 다시 하는지 짚는다",
-        "나머지는 본문에 있어도 맥락이 아니면 버린다"
-      ],
-      "concepts": [
-        "맥락 반복",
-        "매력오답",
-        "소거법"
-      ]
-    },
-    {
-      "no": 25,
-      "title": "서술형 — 빈칸 완성",
-      "why": "본문 표현을 그대로 쓰면 감점입니다. 바꿔 써야 하는데 철자·어형까지 맞아야 합니다.",
-      "steps": [
-        "빈칸이 가리키는 본문 문장을 찾는다",
-        "같은 뜻의 다른 말로 바꾼다",
-        "품사와 수를 문장에 맞춘다"
-      ],
-      "concepts": [
-        "패러프레이즈",
-        "어형 변화",
-        "조건 충족"
-      ]
-    }
-  ],
+  "chapter_desc": "교과서가 58점, 부교재가 26점, 모의고사가 16점입니다. 교과서를 다 외워도 42점은 밖에서 나옵니다.",
   "study_plan_desc": "기말까지 8주입니다. 이번에 갈린 자리부터 메웁니다.",
   "study_plan": [
     {
@@ -479,8 +77,774 @@
     "시험 2주 전에는 새 교재를 시작하지 않는 편이 좋습니다. 틀린 것을 다시 보는 시간이 더 필요합니다."
   ],
   "summary": {
-    "quote": "교과서만으로는 52점입니다.",
-    "desc": "이번 회차는 지문 출처가 셋으로 나뉘었고, 상·중상 구간이 63점이었습니다. 기말에도 이 구조가 유지될 가능성이 높습니다. 빈칸과 어법, 그리고 서술형 24점이 다음 시험의 갈림길입니다."
+    "quote": "교과서만으로는 58점입니다.",
+    "desc": "지문 출처가 셋으로 나뉘었고 상·중상 구간이 66점이었습니다. 빈칸과 어법, 서술형 24점이 다음 시험의 갈림길입니다."
   },
-  "disclaimer": "이 분석은 시험지 원본을 바탕으로 작성했습니다. 난이도와 정답률은 추정치이며 실제 학교 통계와 다를 수 있습니다."
+  "disclaimer": "이 분석은 시험지 원본을 바탕으로 작성했습니다. 난이도와 정답률은 추정치이며 실제 학교 통계와 다를 수 있습니다. 킬러문항 4개는 기계 규칙(난이도 상 중 배점순: 22·25·11·17·6번)이 아니라 학원이 직접 고른 것입니다(수동 선정).",
+  "grade_cut": {
+    "enabled": false
+  },
+  "next_action": "학원은 4주 동안 빈칸추론과 서술형 조건 영작을 주 2회 따로 다룹니다.",
+  "meta": {
+    "school": "명지고등학교",
+    "grade": "H1",
+    "grade_label": "고1",
+    "term": "2026-1학기 중간고사",
+    "subject": "영어",
+    "year": "2026",
+    "total_items": 25,
+    "total_points": 100.0,
+    "scope": "교과서 1~3과 · 수능특강 12·14·18강 · 3월 학력평가 지문"
+  },
+  "items": [
+    {
+      "no": 1,
+      "type": "세부내용",
+      "points": 3.0,
+      "difficulty": "중하",
+      "source": "교과서 1과",
+      "answer": "3",
+      "basis": "일치/불일치 — 본문 그대로 대조",
+      "confidence": "high"
+    },
+    {
+      "no": 2,
+      "type": "대의파악",
+      "points": 3.0,
+      "difficulty": "중",
+      "source": "교과서 1과",
+      "answer": "1",
+      "basis": "daeui:되풀이되는 말 = community garden",
+      "confidence": "high"
+    },
+    {
+      "no": 3,
+      "type": "어휘",
+      "points": 3.0,
+      "difficulty": "중하",
+      "source": "교과서 1과",
+      "answer": "4",
+      "basis": "voca:혼동어휘 adapt/adopt",
+      "confidence": "high"
+    },
+    {
+      "no": 4,
+      "type": "어법",
+      "points": 4.0,
+      "difficulty": "중상",
+      "source": "교과서 1과",
+      "answer": "2",
+      "basis": "golden:분사 vs 동사 — 주절에 본동사 이미 있음",
+      "confidence": "high"
+    },
+    {
+      "no": 5,
+      "type": "빈칸추론",
+      "points": 4.0,
+      "difficulty": "중상",
+      "source": "교과서 2과",
+      "answer": "5",
+      "basis": "binkan:원칙1 맥락 — 02번 주제문 되풀이 자리",
+      "confidence": "high"
+    },
+    {
+      "no": 6,
+      "type": "글의 흐름",
+      "points": 4.0,
+      "difficulty": "상",
+      "source": "교과서 2과",
+      "answer": "3",
+      "basis": "order:지칭 — this practice 가 가리킬 선행 문장",
+      "confidence": "high"
+    },
+    {
+      "no": 7,
+      "type": "세부내용",
+      "points": 3.0,
+      "difficulty": "하",
+      "source": "교과서 2과",
+      "answer": "2",
+      "basis": "도표 수치 직접 대조",
+      "confidence": "high"
+    },
+    {
+      "no": 8,
+      "type": "대의파악",
+      "points": 3.0,
+      "difficulty": "중",
+      "source": "교과서 2과",
+      "answer": "4",
+      "basis": "daeui:예시(농부 사례)를 주제로 잡는 함정",
+      "confidence": "high"
+    },
+    {
+      "no": 9,
+      "type": "어법",
+      "points": 4.0,
+      "difficulty": "중상",
+      "source": "교과서 2과",
+      "answer": "1",
+      "basis": "golden:관계대명사 what/that 구분",
+      "confidence": "high"
+    },
+    {
+      "no": 10,
+      "type": "어휘",
+      "points": 3.0,
+      "difficulty": "중",
+      "source": "교과서 3과",
+      "answer": "5",
+      "basis": "voca:유의어 sustain/maintain 문맥 판별",
+      "confidence": "high"
+    },
+    {
+      "no": 11,
+      "type": "빈칸추론",
+      "points": 5.0,
+      "difficulty": "상",
+      "source": "교과서 3과",
+      "answer": "2",
+      "basis": "binkan:원칙2 후반 위치 → 난도 상",
+      "confidence": "high"
+    },
+    {
+      "no": 12,
+      "type": "글의 흐름",
+      "points": 4.0,
+      "difficulty": "중상",
+      "source": "교과서 3과",
+      "answer": "4",
+      "basis": "order:연결 — However 앞뒤 의미 단절",
+      "confidence": "high"
+    },
+    {
+      "no": 13,
+      "type": "세부내용",
+      "points": 3.0,
+      "difficulty": "중하",
+      "source": "교과서 3과",
+      "answer": "3",
+      "basis": "안내문 조건 대조",
+      "confidence": "high"
+    },
+    {
+      "no": 14,
+      "type": "대의파악",
+      "points": 4.0,
+      "difficulty": "중",
+      "source": "부교재 수특 12강",
+      "answer": "1",
+      "basis": "daeui:제목 — 과잉일반화 오답 2·5",
+      "confidence": "high"
+    },
+    {
+      "no": 15,
+      "type": "어법",
+      "points": 4.0,
+      "difficulty": "상",
+      "source": "부교재 수특 12강",
+      "answer": "5",
+      "basis": "golden:도치 — 부정어 도치 후 조동사 위치",
+      "confidence": "high"
+    },
+    {
+      "no": 16,
+      "type": "어휘",
+      "points": 3.0,
+      "difficulty": "중",
+      "source": "부교재 수특 14강",
+      "answer": "2",
+      "basis": "voca:반의어 scarce/abundant",
+      "confidence": "high"
+    },
+    {
+      "no": 17,
+      "type": "빈칸추론",
+      "points": 5.0,
+      "difficulty": "상",
+      "source": "부교재 수특 14강",
+      "answer": "4",
+      "basis": "binkan:원칙4 부정어 없음 → 같은 말이 정답",
+      "confidence": "high"
+    },
+    {
+      "no": 18,
+      "type": "글의 흐름",
+      "points": 4.0,
+      "difficulty": "중상",
+      "source": "부교재 수특 18강",
+      "answer": "3",
+      "basis": "order:시간순서 — 연도 표지",
+      "confidence": "high"
+    },
+    {
+      "no": 19,
+      "type": "세부내용",
+      "points": 3.0,
+      "difficulty": "중하",
+      "source": "모의고사 3월",
+      "answer": "5",
+      "basis": "불일치 — 선지 3 수치 조작",
+      "confidence": "high"
+    },
+    {
+      "no": 20,
+      "type": "대의파악",
+      "points": 3.0,
+      "difficulty": "중",
+      "source": "모의고사 3월",
+      "answer": "2",
+      "basis": "daeui:요지 — 방향오류 오답 4",
+      "confidence": "high"
+    },
+    {
+      "no": 21,
+      "type": "어법",
+      "points": 4.0,
+      "difficulty": "중상",
+      "source": "모의고사 3월",
+      "answer": "1",
+      "basis": "golden:수일치 — 삽입구 뒤 주어 복수",
+      "confidence": "high"
+    },
+    {
+      "no": 22,
+      "type": "서술형",
+      "points": 6.0,
+      "difficulty": "상",
+      "source": "교과서 2과",
+      "answer": "서술형",
+      "basis": "golden:어법 고쳐쓰기 — 능동/수동",
+      "confidence": "high"
+    },
+    {
+      "no": 23,
+      "type": "서술형",
+      "points": 6.0,
+      "difficulty": "중상",
+      "source": "교과서 3과",
+      "answer": "서술형",
+      "basis": "daeui:요약문 완성 — 핵심어 2개",
+      "confidence": "high"
+    },
+    {
+      "no": 24,
+      "type": "서술형",
+      "points": 6.0,
+      "difficulty": "중상",
+      "source": "부교재 수특 12강",
+      "answer": "서술형",
+      "basis": "조건 영작 — 관계사 필수",
+      "confidence": "high"
+    },
+    {
+      "no": 25,
+      "type": "서술형",
+      "points": 6.0,
+      "difficulty": "상",
+      "source": "모의고사 3월",
+      "answer": "서술형",
+      "basis": "binkan:빈칸 완성 — 본문 패러프레이즈",
+      "confidence": "high"
+    }
+  ],
+  "types": [
+    {
+      "name": "서술형",
+      "count": 4,
+      "points": 24.0,
+      "em": ""
+    },
+    {
+      "name": "어법",
+      "count": 4,
+      "points": 16.0,
+      "em": ""
+    },
+    {
+      "name": "빈칸추론",
+      "count": 3,
+      "points": 14.0,
+      "em": "em"
+    },
+    {
+      "name": "대의파악",
+      "count": 4,
+      "points": 13.0,
+      "em": ""
+    },
+    {
+      "name": "세부내용",
+      "count": 4,
+      "points": 12.0,
+      "em": ""
+    },
+    {
+      "name": "글의 흐름",
+      "count": 3,
+      "points": 12.0,
+      "em": ""
+    },
+    {
+      "name": "어휘",
+      "count": 3,
+      "points": 9.0,
+      "em": ""
+    }
+  ],
+  "chapters": [
+    {
+      "name": "교과서 2과",
+      "count": 6,
+      "points": 24.0,
+      "em": ""
+    },
+    {
+      "name": "교과서 3과",
+      "count": 5,
+      "points": 21.0,
+      "em": ""
+    },
+    {
+      "name": "모의고사 3월",
+      "count": 4,
+      "points": 16.0,
+      "em": "em"
+    },
+    {
+      "name": "부교재 수특 12강",
+      "count": 3,
+      "points": 14.0,
+      "em": ""
+    },
+    {
+      "name": "교과서 1과",
+      "count": 4,
+      "points": 13.0,
+      "em": ""
+    },
+    {
+      "name": "부교재 수특 14강",
+      "count": 2,
+      "points": 8.0,
+      "em": ""
+    },
+    {
+      "name": "부교재 수특 18강",
+      "count": 1,
+      "points": 4.0,
+      "em": ""
+    }
+  ],
+  "types_note": "칠한 줄은 배점이 가장 많은 서술형이 아니라 빈칸추론입니다. 세 문항뿐인데 그 가운데 둘이 상이고, 그 둘이 이번 회차에서 가장 크게 갈렸습니다.",
+  "chapters_note": "칠한 줄은 모의고사 3월입니다. 네 문항 16점인데 그 안에 6점짜리 서술형 25번이 들어 있고, 교과서에서는 한 번도 다루지 않은 지문입니다.",
+  "difficulty": {
+    "detail": [
+      {
+        "label": "상",
+        "count": 6,
+        "points": 30.0,
+        "nos": "6·11·15·17·22·25번"
+      },
+      {
+        "label": "중상",
+        "count": 8,
+        "points": 36.0,
+        "nos": "4·5·9·12·18·21·23·24번"
+      },
+      {
+        "label": "중",
+        "count": 6,
+        "points": 19.0,
+        "nos": "2·8·10·14·16·20번"
+      },
+      {
+        "label": "중하",
+        "count": 4,
+        "points": 12.0,
+        "nos": "1·3·13·19번"
+      },
+      {
+        "label": "하",
+        "count": 1,
+        "points": 3.0,
+        "nos": "7번"
+      }
+    ],
+    "summary": "상 6문항 30점, 중상 8문항 36점으로 상위 구간이 66점입니다.",
+    "discriminator": "11·15·17·25번에서 갈렸습니다."
+  },
+  "radar": {
+    "ok": "1",
+    "points": "100.0,28.0 137.5,70.1 140.9,109.3 116.9,135.1 84.4,132.4 64.9,108.0 78.9,83.2",
+    "rings": [
+      {
+        "points": "100.0,82.0 114.1,88.8 117.5,104.0 107.8,116.2 92.2,116.2 82.5,104.0 85.9,88.8"
+      },
+      {
+        "points": "100.0,64.0 128.1,77.6 135.1,108.0 115.6,132.4 84.4,132.4 64.9,108.0 71.9,77.6"
+      },
+      {
+        "points": "100.0,46.0 142.2,66.3 152.6,112.0 123.4,148.7 76.6,148.7 47.4,112.0 57.8,66.3"
+      },
+      {
+        "points": "100.0,28.0 156.3,55.1 170.2,116.0 131.2,164.9 68.8,164.9 29.8,116.0 43.7,55.1"
+      }
+    ],
+    "spokes": [
+      {
+        "x2": "100.0",
+        "y2": "28.0"
+      },
+      {
+        "x2": "156.3",
+        "y2": "55.1"
+      },
+      {
+        "x2": "170.2",
+        "y2": "116.0"
+      },
+      {
+        "x2": "131.2",
+        "y2": "164.9"
+      },
+      {
+        "x2": "68.8",
+        "y2": "164.9"
+      },
+      {
+        "x2": "29.8",
+        "y2": "116.0"
+      },
+      {
+        "x2": "43.7",
+        "y2": "55.1"
+      }
+    ],
+    "axes": [
+      {
+        "name": "서술형",
+        "value": "24",
+        "count": 4,
+        "lx": "100.0",
+        "ly": "18.8",
+        "anchor": "middle",
+        "em": ""
+      },
+      {
+        "name": "어법",
+        "value": "16",
+        "count": 4,
+        "lx": "165.9",
+        "ly": "50.5",
+        "anchor": "start",
+        "em": ""
+      },
+      {
+        "name": "빈칸추론",
+        "value": "14",
+        "count": 3,
+        "lx": "182.1",
+        "ly": "121.7",
+        "anchor": "start",
+        "em": "em"
+      },
+      {
+        "name": "대의파악",
+        "value": "13",
+        "count": 4,
+        "lx": "136.6",
+        "ly": "178.9",
+        "anchor": "start",
+        "em": ""
+      },
+      {
+        "name": "세부내용",
+        "value": "12",
+        "count": 4,
+        "lx": "63.4",
+        "ly": "178.9",
+        "anchor": "end",
+        "em": ""
+      },
+      {
+        "name": "글의 흐름",
+        "value": "12",
+        "count": 3,
+        "lx": "17.9",
+        "ly": "121.7",
+        "anchor": "end",
+        "em": ""
+      },
+      {
+        "name": "어휘",
+        "value": "9",
+        "count": 3,
+        "lx": "34.1",
+        "ly": "50.5",
+        "anchor": "end",
+        "em": ""
+      }
+    ],
+    "top": "24"
+  },
+  "killer": [
+    {
+      "no": 11,
+      "kind": "객관식",
+      "source": "교과서 3과",
+      "steps_flow": [
+        {
+          "text": "앞 단락에서 되풀이되는 말을 찾는다",
+          "conclusion": "come back 과 next week 가 되풀이된다",
+          "em": "",
+          "value": "앞 단락에서 되풀이되는 말을 찾는다 → come back 과 next week 가 되풀이된다"
+        },
+        {
+          "text": "빈칸 앞뒤에 부정어가 있는지 본다",
+          "conclusion": "없으므로 같은 말이 정답이다",
+          "em": "em",
+          "value": "빈칸 앞뒤에 부정어가 있는지 본다 → 없으므로 같은 말이 정답이다"
+        },
+        {
+          "text": "본문 낱말을 그대로 쓴 선지를 먼저 의심한다",
+          "conclusion": "1·4번이 그 자리다",
+          "em": "",
+          "value": "본문 낱말을 그대로 쓴 선지를 먼저 의심한다 → 1·4번이 그 자리다"
+        }
+      ],
+      "title": "빈칸추론 — 글 후반 빈칸",
+      "why": "빈칸이 글 끝에 있어 앞 문단을 모두 읽어야 합니다. 선지 1·4가 본문 낱말을 그대로 써서 눈에 먼저 들어옵니다.",
+      "steps": [
+        "앞 단락에서 되풀이되는 말을 찾는다 → come back 과 next week 가 되풀이된다",
+        "★ 빈칸 앞뒤에 부정어가 있는지 본다 → 없으므로 같은 말이 정답이다",
+        "본문 낱말을 그대로 쓴 선지를 먼저 의심한다 → 1·4번이 그 자리다"
+      ],
+      "concepts": [
+        "빈칸 원칙1 맥락",
+        "원칙2 위치",
+        "패러프레이즈"
+      ],
+      "excerpt": "Community gardens do more than grow food. They rebuild the habits\nthat a neighborhood forgets when everyone shops alone. Volunteers\nlearn the schedule of the soil, and the soil makes them come back\nnext week whether the harvest was good or not. What keeps a garden\nalive, in the end, is not the harvest but the __ it puts back.",
+      "choices": [
+        "profit that the harvest finally brings",
+        "routine of returning to the same place",
+        "silence that a busy street cannot offer",
+        "food that neighbors no longer have to buy",
+        "space that the city set aside for its people"
+      ],
+      "conditions": [],
+      "givens": [],
+      "answer": "2",
+      "wrong_reasons": [
+        "① profit 은 harvest 를 바꿔 쓴 말인데, 마지막 문장이 「수확이 아니다」라고 못 박는다",
+        "③ silence 는 본문에 없는 말이다. 조용한 텃밭을 떠올리게 하는 매력오답",
+        "④ food 는 첫 문장의 낱말 그대로지만, 그 문장이 「먹을거리 이상」이라고 시작했으므로 방향이 반대다",
+        "⑤ space 는 도시가 내준 땅 이야기로 본문에 없다"
+      ],
+      "selection": "수동 선정"
+    },
+    {
+      "no": 15,
+      "kind": "객관식",
+      "source": "부교재 수특 12강",
+      "steps_flow": [
+        {
+          "text": "문두 부정어를 표시한다",
+          "conclusion": "Not only 가 첫 낱말이다",
+          "em": "",
+          "value": "문두 부정어를 표시한다 → Not only 가 첫 낱말이다"
+        },
+        {
+          "text": "바로 뒤에 조동사나 be동사가 왔는지 본다",
+          "conclusion": "여기서 갈린다",
+          "em": "em",
+          "value": "바로 뒤에 조동사나 be동사가 왔는지 본다 → 여기서 갈린다"
+        },
+        {
+          "text": "주어와 동사의 수일치를 다시 본다",
+          "conclusion": "도치해도 수일치는 그대로다",
+          "em": "",
+          "value": "주어와 동사의 수일치를 다시 본다 → 도치해도 수일치는 그대로다"
+        }
+      ],
+      "title": "어법 — 부정어 도치",
+      "why": "Not only 가 문두에 나오면 조동사나 be동사가 주어 앞으로 나와야 한다. Not only was the schedule posted 가 맞다. 밑줄 ⑤는 도치 없이 평서문 어순 그대로다.",
+      "steps": [
+        "문두 부정어를 표시한다 → Not only 가 첫 낱말이다",
+        "★ 바로 뒤에 조동사나 be동사가 왔는지 본다 → 여기서 갈린다",
+        "주어와 동사의 수일치를 다시 본다 → 도치해도 수일치는 그대로다"
+      ],
+      "concepts": [
+        "부정어 도치",
+        "조동사 위치",
+        "수일치"
+      ],
+      "excerpt": "Not until the second winter ② did the members notice the gap.\nLittle ④ did they know that the rule would outlast them all.\nNot only ⑤ the schedule was posted, but it was also read aloud each spring.",
+      "choices": [
+        "Rarely does a garden survive its first winter without a written schedule.",
+        "Only then was the gate key copied for three people.",
+        "does",
+        "did",
+        "was",
+        "did",
+        "the schedule was"
+      ],
+      "conditions": [],
+      "givens": [],
+      "answer": "5",
+      "wrong_reasons": [
+        "① Rarely 뒤에 does 가 나와 도치가 이미 되어 있다",
+        "② Not until 절 뒤에 did 가 나온 옳은 도치다",
+        "③ Only then 뒤의 was 도 부사구 도치의 정석이다",
+        "④ Little 뒤의 did 역시 같은 꼴이다"
+      ],
+      "selection": "수동 선정"
+    },
+    {
+      "no": 17,
+      "kind": "객관식",
+      "source": "부교재 수특 14강",
+      "steps_flow": [
+        {
+          "text": "단락마다 되풀이되는 명사를 적는다",
+          "conclusion": "order 와 turn 이 남는다",
+          "em": "",
+          "value": "단락마다 되풀이되는 명사를 적는다 → order 와 turn 이 남는다"
+        },
+        {
+          "text": "빈칸 문장이 어느 말을 다시 하는지 짚는다",
+          "conclusion": "여기서 갈린다",
+          "em": "em",
+          "value": "빈칸 문장이 어느 말을 다시 하는지 짚는다 → 여기서 갈린다"
+        },
+        {
+          "text": "나머지는 본문에 있어도 맥락이 아니면 버린다",
+          "conclusion": "1·2·3·5번이 그 자리다",
+          "em": "",
+          "value": "나머지는 본문에 있어도 맥락이 아니면 버린다 → 1·2·3·5번이 그 자리다"
+        }
+      ],
+      "title": "빈칸추론 — 자원 희소성",
+      "why": "선지 넷이 모두 본문에 나온 표현입니다. 뜻이 아니라 «되풀이되는 말인가» 로 갈라야 합니다. 되풀이되는 것은 the order 와 a turn 이므로 마을이 이미 내린 결정이 답입니다.",
+      "steps": [
+        "단락마다 되풀이되는 명사를 적는다 → order 와 turn 이 남는다",
+        "★ 빈칸 문장이 어느 말을 다시 하는지 짚는다 → 여기서 갈린다",
+        "나머지는 본문에 있어도 맥락이 아니면 버린다 → 1·2·3·5번이 그 자리다"
+      ],
+      "concepts": [
+        "맥락 반복",
+        "매력오답",
+        "소거법"
+      ],
+      "excerpt": "When water is scarce, a village does not argue about water.\nIt argues about the order in which the water is used.\nThe stream, the field, the kitchen, the animals — each has a turn,\nand the turn is older than anyone now living. Scarcity, then, is not a shortage.\nIt is ____ .",
+      "choices": [
+        "a stream that runs for only two months",
+        "a field that waits longer than it should",
+        "a kitchen that must share what it holds",
+        "a choice that a village has already made",
+        "an animal that drinks after everyone else"
+      ],
+      "conditions": [],
+      "givens": [],
+      "answer": "4",
+      "wrong_reasons": [
+        "① stream 은 본문 낱말 그대로지만 차례를 받는 넷 가운데 하나일 뿐이다",
+        "② field 도 같다. 본문에 있다고 맥락인 것은 아니다",
+        "③ kitchen 역시 차례를 받는 쪽이지 희소성 자체가 아니다",
+        "⑤ animal 은 마지막 차례일 뿐 결론이 아니다"
+      ],
+      "selection": "수동 선정"
+    },
+    {
+      "no": 25,
+      "kind": "서술형",
+      "source": "모의고사 3월",
+      "steps_flow": [
+        {
+          "text": "빈칸이 가리키는 본문 문장을 찾는다",
+          "conclusion": "마지막 한 문장이 근거다",
+          "em": "",
+          "value": "빈칸이 가리키는 본문 문장을 찾는다 → 마지막 한 문장이 근거다"
+        },
+        {
+          "text": "같은 뜻의 다른 말로 바꾼다",
+          "conclusion": "여기서 갈린다",
+          "em": "em",
+          "value": "같은 뜻의 다른 말로 바꾼다 → 여기서 갈린다"
+        },
+        {
+          "text": "품사와 수를 문장에 맞춘다",
+          "conclusion": "belong 은 belonging 이 된다",
+          "em": "",
+          "value": "품사와 수를 문장에 맞춘다 → belong 은 belonging 이 된다"
+        }
+      ],
+      "title": "서술형 — 요약문 빈칸 완성",
+      "why": "본문 표현을 그대로 옮기면 감점입니다. 바꿔 쓰되 철자와 어형까지 맞아야 해서 부분 점수가 많이 깎였습니다.",
+      "steps": [
+        "빈칸이 가리키는 본문 문장을 찾는다 → 마지막 한 문장이 근거다",
+        "★ 같은 뜻의 다른 말로 바꾼다 → 여기서 갈린다",
+        "품사와 수를 문장에 맞춘다 → belong 은 belonging 이 된다"
+      ],
+      "concepts": [
+        "패러프레이즈",
+        "어형 변화",
+        "조건 충족"
+      ],
+      "excerpt": "What keeps a garden alive is not the harvest but the habit it\nputs back into a street.\nA community garden survives on the (A) ____ of meeting again,\nwhich gives neighbors a sense of (B) ____ .",
+      "choices": [],
+      "conditions": [
+        "본문에 그대로 나온 낱말은 쓰지 말 것",
+        "각 빈칸에 한 낱말씩, 철자까지 정확히 쓸 것",
+        "(B)는 주어진 낱말 belong 의 어형을 바꿔 쓸 것"
+      ],
+      "givens": [],
+      "answer": "(A) routine (B) belonging",
+      "wrong_reasons": [
+        "habit 을 그대로 쓰면 조건 1 위반이다. 뜻이 맞아도 점수를 주지 않는다",
+        "belong 을 어형 변화 없이 쓰면 조건 3 을 채우지 못한다",
+        "(A)에 meeting 을 쓰면 요약문에 이미 나온 meeting again 을 옮긴 것이라 감점이다",
+        "한 칸에 두 낱말을 쓰면 조건 2 위반이다"
+      ],
+      "selection": "수동 선정"
+    }
+  ],
+  "killer_selection": {
+    "mode": "수동 선정",
+    "nos": [
+      11,
+      15,
+      17,
+      25
+    ],
+    "rule": "exam.json 의 killer_override",
+    "machine_nos": [
+      22,
+      25,
+      11,
+      17,
+      6
+    ]
+  },
+  "issues": [
+    {
+      "no": 24,
+      "kind": "조건누락",
+      "reason": "조건 영작인데 «관계사를 쓸 것» 만 있고 어형 변화 허용 여부가 없습니다. 학생 답이 갈리면 채점 기준을 학교에 물어야 합니다.",
+      "excerpt": "우리말: 가장 적게 버리는 텃밭은 남은 채소가 이미 자리를 가진 곳이다."
+    }
+  ],
+  "sections": [
+    "overview",
+    "items",
+    "type-chart",
+    "chapter-ratio",
+    "difficulty",
+    "killer",
+    "issues",
+    "study-plan",
+    "parent-note",
+    "summary"
+  ]
 }

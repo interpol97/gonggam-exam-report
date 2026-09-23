@@ -1,0 +1,117 @@
+{
+  "brand": {
+    "academy": "공감에듀",
+    "theme": "clean",
+    "logo_path": null,
+    "logo_bg": "light"
+  },
+  "meta": {
+    "school": "명지고등학교",
+    "grade": "H1",
+    "grade_label": "고1",
+    "term": "2026-1학기 중간고사",
+    "subject": "영어",
+    "year": "2026",
+    "total_items": 25,
+    "total_points": 100,
+    "scope": "교과서 1~3과 · 수능특강 12·14·18강 · 3월 학력평가 지문"
+  },
+  "cover": {
+    "subtitle": "2026학년도 1학기 중간고사 분석",
+    "tags": ["출제 경향", "난이도 분석", "킬러문항 4"]
+  },
+  "overview": {
+    "desc": "25문항 100점, 서술형 4문항 24점으로 출제되었습니다. 지문 출처가 교과서 밖으로 넓어진 것이 이번 회차의 가장 큰 변화입니다.",
+    "highlight": "서술형 배점이 24점입니다. 객관식을 다 맞혀도 서술형에서 갈립니다.",
+    "cards": [
+      {"label": "총 문항", "value": "25문항"},
+      {"label": "총점", "value": "100점"},
+      {"label": "서술형", "value": "4문항 24점"},
+      {"label": "지문 출처", "value": "3갈래"}
+    ]
+  },
+  "emphasis": {
+    "types": "빈칸추론",
+    "chapters": "모의고사 3월"
+  },
+  "types_note": "칠한 줄은 배점이 가장 많은 서술형이 아니라 빈칸추론입니다. 세 문항뿐인데 그 가운데 둘이 상이고, 그 둘이 이번 회차에서 가장 크게 갈렸습니다.",
+  "chapters_note": "칠한 줄은 모의고사 3월입니다. 네 문항 16점인데 그 안에 6점짜리 서술형 25번이 들어 있고, 교과서에서는 한 번도 다루지 않은 지문입니다.",
+  "chapter_desc": "교과서가 58점, 부교재가 26점, 모의고사가 16점입니다. 교과서를 다 외워도 42점은 밖에서 나옵니다.",
+  "difficulty": {
+    "summary": "상 6문항 30점, 중상 8문항 36점입니다. 두 구간을 합치면 66점입니다.",
+    "discriminator": "11·15·17·25번에서 갈렸습니다. 넷 중 둘이 빈칸추론이고 나머지는 어법 도치와 서술형이며, 셋이 부교재·모의고사 지문입니다."
+  },
+  "study_plan_desc": "기말까지 8주입니다. 이번에 갈린 자리부터 메웁니다.",
+  "study_plan": [
+    {"week": "1~2주", "focus": "빈칸추론", "todo": "수특 12·14강 빈칸 문항만 다시 풀고, 맥락이 되풀이되는 자리를 표시"},
+    {"week": "3~4주", "focus": "어법", "todo": "도치·수일치·관계사 세 가지만. 교과서 문장으로 고쳐쓰기 20문항"},
+    {"week": "5~6주", "focus": "서술형", "todo": "조건 영작·요약 완성. 본문 표현을 바꿔 쓰는 연습"},
+    {"week": "7~8주", "focus": "실전", "todo": "모의고사 지문으로 시간 재고 풀기. 25분 안에 25문항"}
+  ],
+  "parent_note": [
+    "단어 확인을 하루 5분만 봐주세요. 이번 시험에서 어휘 문항 3개 중 1개를 틀렸습니다.",
+    "서술형은 집에서 봐주시기 어렵습니다. 학원에서 맡겠습니다.",
+    "시험 2주 전에는 새 교재를 시작하지 않는 편이 좋습니다. 틀린 것을 다시 보는 시간이 더 필요합니다."
+  ],
+  "summary": {
+    "quote": "교과서만으로는 58점입니다.",
+    "desc": "지문 출처가 셋으로 나뉘었고 상·중상 구간이 66점이었습니다. 빈칸과 어법, 서술형 24점이 다음 시험의 갈림길입니다."
+  },
+  "next_action": "학원은 4주 동안 빈칸추론과 서술형 조건 영작을 주 2회 따로 다룹니다.",
+  "disclaimer": "이 분석은 시험지 원본을 바탕으로 작성했습니다. 난이도와 정답률은 추정치이며 실제 학교 통계와 다를 수 있습니다.",
+  "grade_cut": {"enabled": false},
+  "killer_override": [11, 15, 17, 25],
+  "items": [
+    {"no": 1, "type": "세부내용", "points": 3, "difficulty": "중하", "source": "교과서 1과",
+     "answer": "3", "basis": "일치/불일치 — 본문 그대로 대조", "confidence": "high"},
+    {"no": 2, "type": "대의파악", "points": 3, "difficulty": "중", "source": "교과서 1과",
+     "answer": "1", "basis": "daeui:되풀이되는 말 = community garden", "confidence": "high"},
+    {"no": 3, "type": "어휘", "points": 3, "difficulty": "중하", "source": "교과서 1과",
+     "answer": "4", "basis": "voca:혼동어휘 adapt/adopt", "confidence": "high"},
+    {"no": 4, "type": "어법", "points": 4, "difficulty": "중상", "source": "교과서 1과",
+     "answer": "2", "basis": "golden:분사 vs 동사 — 주절에 본동사 이미 있음", "confidence": "high"},
+    {"no": 5, "type": "빈칸추론", "points": 4, "difficulty": "중상", "source": "교과서 2과",
+     "answer": "5", "basis": "binkan:원칙1 맥락 — 02번 주제문 되풀이 자리", "confidence": "high"},
+    {"no": 6, "type": "글의 흐름", "points": 4, "difficulty": "상", "source": "교과서 2과",
+     "answer": "3", "basis": "order:지칭 — this practice 가 가리킬 선행 문장", "confidence": "high"},
+    {"no": 7, "type": "세부내용", "points": 3, "difficulty": "하", "source": "교과서 2과",
+     "answer": "2", "basis": "도표 수치 직접 대조", "confidence": "high"},
+    {"no": 8, "type": "대의파악", "points": 3, "difficulty": "중", "source": "교과서 2과",
+     "answer": "4", "basis": "daeui:예시(농부 사례)를 주제로 잡는 함정", "confidence": "high"},
+    {"no": 9, "type": "어법", "points": 4, "difficulty": "중상", "source": "교과서 2과",
+     "answer": "1", "basis": "golden:관계대명사 what/that 구분", "confidence": "high"},
+    {"no": 10, "type": "어휘", "points": 3, "difficulty": "중", "source": "교과서 3과",
+     "answer": "5", "basis": "voca:유의어 sustain/maintain 문맥 판별", "confidence": "high"},
+    {"no": 11, "type": "빈칸추론", "points": 5, "difficulty": "상", "source": "교과서 3과",
+     "answer": "2", "basis": "binkan:원칙2 후반 위치 → 난도 상", "confidence": "high"},
+    {"no": 12, "type": "글의 흐름", "points": 4, "difficulty": "중상", "source": "교과서 3과",
+     "answer": "4", "basis": "order:연결 — However 앞뒤 의미 단절", "confidence": "high"},
+    {"no": 13, "type": "세부내용", "points": 3, "difficulty": "중하", "source": "교과서 3과",
+     "answer": "3", "basis": "안내문 조건 대조", "confidence": "high"},
+    {"no": 14, "type": "대의파악", "points": 4, "difficulty": "중", "source": "부교재 수특 12강",
+     "answer": "1", "basis": "daeui:제목 — 과잉일반화 오답 2·5", "confidence": "high"},
+    {"no": 15, "type": "어법", "points": 4, "difficulty": "상", "source": "부교재 수특 12강",
+     "answer": "5", "basis": "golden:도치 — 부정어 도치 후 조동사 위치", "confidence": "high"},
+    {"no": 16, "type": "어휘", "points": 3, "difficulty": "중", "source": "부교재 수특 14강",
+     "answer": "2", "basis": "voca:반의어 scarce/abundant", "confidence": "high"},
+    {"no": 17, "type": "빈칸추론", "points": 5, "difficulty": "상", "source": "부교재 수특 14강",
+     "answer": "4", "basis": "binkan:원칙4 부정어 없음 → 같은 말이 정답", "confidence": "high"},
+    {"no": 18, "type": "글의 흐름", "points": 4, "difficulty": "중상", "source": "부교재 수특 18강",
+     "answer": "3", "basis": "order:시간순서 — 연도 표지", "confidence": "high"},
+    {"no": 19, "type": "세부내용", "points": 3, "difficulty": "중하", "source": "모의고사 3월",
+     "answer": "5", "basis": "불일치 — 선지 3 수치 조작", "confidence": "high"},
+    {"no": 20, "type": "대의파악", "points": 3, "difficulty": "중", "source": "모의고사 3월",
+     "answer": "2", "basis": "daeui:요지 — 방향오류 오답 4", "confidence": "high"},
+    {"no": 21, "type": "어법", "points": 4, "difficulty": "중상", "source": "모의고사 3월",
+     "answer": "1", "basis": "golden:수일치 — 삽입구 뒤 주어 복수", "confidence": "high"},
+    {"no": 22, "type": "서술형", "points": 6, "difficulty": "상", "source": "교과서 2과",
+     "answer": "본문참조", "basis": "golden:어법 고쳐쓰기 — 능동/수동", "confidence": "high"},
+    {"no": 23, "type": "서술형", "points": 6, "difficulty": "중상", "source": "교과서 3과",
+     "answer": "본문참조", "basis": "daeui:요약문 완성 — 핵심어 2개", "confidence": "high"},
+    {"no": 24, "type": "서술형", "points": 6, "difficulty": "중상", "source": "부교재 수특 12강",
+     "answer": "본문참조", "basis": "조건 영작 — 관계사 필수", "confidence": "high",
+     "flags": ["issue/조건누락"]},
+    {"no": 25, "type": "서술형", "points": 6, "difficulty": "상", "source": "모의고사 3월",
+     "answer": "본문참조", "basis": "binkan:빈칸 완성 — 본문 패러프레이즈", "confidence": "high"}
+  ]
+}
