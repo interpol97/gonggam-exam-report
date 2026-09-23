@@ -30,6 +30,7 @@ MD 에 또 썼다. 둘이 어긋나도 아무도 몰랐다. 이제 글은 MD 한
 
 import io
 import json
+import math
 import os
 import re
 import sys
@@ -43,7 +44,12 @@ CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩"
 
 # ⓐ~ⓩ — 고난도 내신의 «<보기> ⓐ~ⓔ + 조합 선지» 꼴. 선지 ①~⑤ 가 ⓐ~ⓔ 의 조합을 고르므로
 # 보기를 못 읽으면 문항이 통째로 뜻을 잃는다 (명지고2 2026-1학기 기말 34번에서 드러났다).
-CIRCLED_LETTERS = "".join(chr(c) for c in range(0x24D0, 0x24EA))
+# 국어는 ⓐ 가 아니라 **ㄱ·ㄴ·ㄷ·ㄹ** 로 보기를 단다. 그게 그 과목의 관례다.
+# 여기에 없어서 국어 목업의 <보기> 가 보기로 안 잡히고 발문과 한 덩어리로
+# 발췌 상자에 흘러들었다 — 글자는 살아남지만 <보기> 상자가 서지 않았다.
+# 「영어에서 됐으니 됐다」가 통하지 않는 자리다.
+HANGUL_MARKS = "ㄱㄴㄷㄹㅁㅂㅅㅇ"
+CIRCLED_LETTERS = "".join(chr(c) for c in range(0x24D0, 0x24EA)) + HANGUL_MARKS
 
 # 서술형을 가리키는 유형 이름. 학교마다 «서답형» 으로도 쓴다.
 ESSAY_WORDS = ("서술형", "서답형", "논술형")
@@ -82,10 +88,16 @@ SUMMARY_LIMITS = [
 FILL_STUDY_ROWS = 2         # «앞의 2주만» — 학부모가 읽는 것은 «다음에 뭘 하나» 다
 FILL_PARENT_ROWS = 2
 FILL_ROW_CHARS = CHARS_PER_LINE     # 한 줄 70자 — 채움 블록의 한 줄도 같은 폭을 쓴다
+# (key, 제목, 판형 자리 이름)
+#   key    = 상세본 섹션 이름. 「이미 섹션으로 실렸나」를 이 이름으로 본다
+#   자리   = 요약본 판형의 SECTION:… 이름. 둘은 **다르다**
+# 처음엔 key 하나뿐이었고, 렌더러가 그 key 로 자리를 찾다 셋 다 「켤 자리 없음」으로
+# 빠졌다. 그래서 요약본 아래가 53mm 비어도 아무 것도 안 켜졌다 — 수학 목업에서
+# 드러난 결함이다. 영어는 이슈 문항이 그 자리를 채워 안 보였다.
 FILL_PLAN = [
-    ("study-plan", "다음 학습 전략"),
-    ("parent-note", "가정에서 도와주실 것"),
-    ("difficulty-detail", "난이도 5단 상세"),
+    ("study-plan", "다음 학습 전략", "fill-plan"),
+    ("parent-note", "가정에서 도와주실 것", "fill-home"),
+    ("difficulty-detail", "난이도 5단 상세", "fill-difficulty"),
 ]
 
 # 「본문참조」는 정답이 아니라 **정답을 적지 않았다는 말**이다. 학부모가 받는 한 장에
@@ -99,13 +111,17 @@ NEXT_ACTION_FALLBACK = "학원은 이번에 갈린 문항을 다음 수업부터
 
 DETAIL_SECTIONS = ["overview", "items", "type-chart", "chapter-ratio",
                    "difficulty", "killer", "study-plan", "parent-note", "summary"]
-SUMMARY_SECTIONS = ["overview", "type-chart", "difficulty", "killer", "summary"]
+SUMMARY_SECTIONS = ["overview", "type-chart", "radar", "difficulty", "killer", "summary"]
 
 # 섹션마다 report.json 에 있어야 하는 것. 템플릿이 실제로 읽는 키와 같다.
 SECTION_NEEDS = {
     "overview": ["overview.desc", "overview.highlight", "overview.cards", "meta.scope"],
     "items": ["items"],
     "type-chart": ["types"],
+    # 레이다 — 유형 막대와 같은 데이터를 다른 꼴로 본다. 좌표는 빌더가 낸다.
+    # 이 줄이 없어서, 판형에 자리가 있는데도 sections_summary 에 적으면
+    # 「템플릿에 없는 섹션」으로 막혔다 — 켤 길이 없는 자리였다.
+    "radar": ["radar.points"],
     "chapter-ratio": ["chapters", "chapter_desc"],
     "difficulty": ["difficulty.summary", "difficulty.discriminator"],
     "killer": ["killer"],
@@ -399,6 +415,41 @@ def bullets_of(lines):
     return [x for x in out if x]
 
 
+STEP_EM = "★"
+STEP_ARROW = re.compile(r"\s*(?:→|->)\s*")
+
+
+def split_steps(rows):
+    """푸는 순서 한 줄을 «하는 일 → 결론» 으로 가른다.
+    규격: references/layout-grammar.md §5 · md-contract.md
+
+        1. It is 와 that 을 지워본다 → 문장이 깨진다
+        2. ★ It is 뒤 요소의 품사를 본다 → conceivable = 형용사 ∴ 가주어
+        3. that 뒤 절의 완전성을 본다 → what ✗ / that ✓
+
+    ★ 는 «실제로 갈린 칸» 이다. 본본은 셋 중 하나만 칠했다 — 강조는 하나뿐이다.
+    화살표가 없으면 결론 칸은 빈다. 지어내지 않는다.
+    렌더러에 「만약」이 없으므로 세 칸 모두 **모든 줄에** 온다.
+    """
+    out = []
+    for row in rows:
+        t = row.strip()
+        em = ""
+        if t.startswith(STEP_EM):
+            em, t = "em", t.lstrip(STEP_EM).strip()
+        parts = STEP_ARROW.split(t, 1)
+        out.append({"text": parts[0].strip(),
+                    "conclusion": parts[1].strip() if len(parts) > 1 else "",
+                    "em": em,
+                    "value": t})          # 옛 판형이 쓰던 {{value}} 를 살려 둔다
+    marked = [s for s in out if s["em"]]
+    if len(marked) > 1:
+        return out, ["푸는 순서에 ★ 가 %d개입니다 (%s) — 갈린 칸은 하나입니다. "
+                     "하나만 남기십시오 (layout-grammar.md §0-2)"
+                     % (len(marked), " · ".join(s["text"][:14] for s in marked))]
+    return out, []
+
+
 def text_of(lines):
     return plain(" ".join(x.strip() for x in lines
                           if x.strip() and not BULLET_RE.match(x)))
@@ -663,18 +714,19 @@ def build_fill_blocks(report, items, sections, notes):
     높이를 재서 켜는 것은 렌더러다. 여기서는 «무엇을 어떤 차례로» 만 정한다."""
     blocks = []
 
-    def add(key, title, rows):
+    def add(spec, rows):
+        key, title, section = spec
         if not rows or key in sections:
             return
-        blocks.append({"key": key, "title": title, "rows": rows})
+        blocks.append({"key": key, "title": title, "section": section, "rows": rows})
 
     plan = [p for p in (report.get("study_plan") or []) if isinstance(p, dict)]
-    add(FILL_PLAN[0][0], FILL_PLAN[0][1],
+    add(FILL_PLAN[0],
         [{"week": plain(p.get("week")), "focus": plain(p.get("focus")),
           "todo": plain(p.get("todo"))}
          for p in plan[:FILL_STUDY_ROWS] if p.get("todo") or p.get("focus")])
 
-    add(FILL_PLAN[1][0], FILL_PLAN[1][1],
+    add(FILL_PLAN[1],
         [plain(x) for x in (report.get("parent_note") or [])[:FILL_PARENT_ROWS] if plain(x)])
 
     rows = []
@@ -692,7 +744,7 @@ def build_fill_blocks(report, items, sections, notes):
             text = "·".join(keep) + ELLIPSIS
         rows.append({"label": label, "count": count,
                      "points": points, "nos": text + "번"})
-    add(FILL_PLAN[2][0], FILL_PLAN[2][1], rows)
+    add(FILL_PLAN[2], rows)
 
     # 채우려다 2쪽이 되면 «채우려다 망친» 것이다. 자르지 않고 알린다.
     for b in blocks:
@@ -753,6 +805,102 @@ def aggregate(items, key):
     for r in out:
         r["points"] = round(r["points"], 1)      # 3.0999999 를 종이에 찍지 않는다
     return out
+
+
+CARD_NUM = re.compile(r"^\s*([0-9][0-9,.]*)\s*(.*)$")
+
+
+def split_cards(cards, errors):
+    """«38문항» 을 값과 단위로 가른다 — 숫자는 크게, 단위는 작게 붙인다.
+    규격: references/layout-grammar.md §3
+
+    숫자로 시작하지 않는 카드는 «말» 카드다(본본의 「It ~ that 강조 vs 가주어」).
+    그 자리가 강조 카드다. 다만 **넷 중 하나만** 강조한다(§0-2) —
+    둘을 칠하면 둘 다 안 보인다. 둘 이상이면 막고 사람에게 고르게 한다.
+    """
+    # 값은 «모든 카드»에 온다. 렌더러에 「만약」이 없어서, 한 칸이라도 빠지면
+    # 렌더가 막힌다. 그래서 참/거짓이 아니라 class 에 그대로 꽂는 문자열이다.
+    word = []
+    for c in cards:
+        if not isinstance(c, dict):
+            continue
+        v = str(c.get("value", ""))
+        m = CARD_NUM.match(v)
+        c["key"] = ""
+        if m:
+            c["num"], c["unit"] = m.group(1), m.group(2)
+        else:
+            c["num"], c["unit"] = v, ""
+            c["key"] = "key"
+            word.append(c.get("label") or v)
+    if len(word) > 1:
+        errors.append("숫자 카드 중 «말» 카드가 %d개입니다 (%s) — 강조는 하나뿐입니다. "
+                      "하나만 남기고 나머지는 숫자로 쓰십시오 (layout-grammar.md §0-2)"
+                      % (len(word), " · ".join(word)))
+    return cards
+
+
+def mark_emphasis(rows, name, where, errors):
+    """어느 막대를 칠할지 **데이터가 지목한다.** 규격: layout-grammar.md §6
+
+    1위를 자동으로 칠하지 않는다. 본본은 1위(분사 10개)를 칠하지 않고
+    4위(접속사·관계사 4개)를 칠했다 — 1위는 스스로 교정한 것이라 문제가
+    아니었고, 4위는 한 지문에 몰려 전부 놓친 것이라 문제였다.
+    개수가 아니라 뜻이 강조를 정한다. 지목이 없으면 아무 것도 칠하지 않는다.
+    """
+    # 빈 값이라도 «모든 줄»에 둔다 — 렌더러에 「만약」이 없다.
+    for r in rows:
+        r["em"] = ""
+    if not name:
+        return
+    for r in rows:
+        if str(r.get("name")) == str(name):
+            r["em"] = "em"
+            return
+    errors.append("%s 강조로 «%s» 를 지목했는데 그런 줄이 없습니다. "
+                  "있는 줄: %s" % (where, name, " · ".join(str(r.get("name")) for r in rows)))
+
+
+RADAR_R = 72.0          # viewBox 0 0 200 200, 중심 (100,100)
+RADAR_C = 100.0
+RADAR_RINGS = (0.25, 0.5, 0.75, 1.0)
+
+
+def build_radar(rows):
+    """유형별 배점을 레이다 좌표로 편다. 규격: layout-grammar.md §9-2
+
+    판형은 계산을 못 한다(치환만 한다). 그래서 «어디에 점을 찍는가» 는 여기서 낸다.
+    SVG 는 y 가 아래로 자라므로 12시에서 시작해 시계 방향으로 돈다.
+
+    축이 셋 미만이면 **그리지 않는다** — 둘로는 삼각형도 안 된다. ok 를 비워 보낸다.
+    """
+    n = len(rows)
+    if n < 3:
+        return {"ok": "", "points": "", "rings": [], "spokes": [], "axes": []}
+    top = max(num(r.get("points")) for r in rows) or 1.0
+
+    def at(i, frac):
+        a = math.radians(-90 + 360.0 * i / n)
+        return (RADAR_C + RADAR_R * frac * math.cos(a),
+                RADAR_C + RADAR_R * frac * math.sin(a))
+
+    pts, axes, spokes = [], [], []
+    for i, r in enumerate(rows):
+        x, y = at(i, num(r.get("points")) / top)
+        pts.append("%.1f,%.1f" % (x, y))
+        sx, sy = at(i, 1.0)
+        spokes.append({"x2": "%.1f" % sx, "y2": "%.1f" % sy})
+        # 이름은 고리 **밖**에 둔다. 왼쪽 반원이면 오른쪽 맞춤 — 글자가 그림을 안 먹는다.
+        lx, ly = at(i, 1.17)
+        anchor = "middle" if abs(lx - RADAR_C) < 8 else ("start" if lx > RADAR_C else "end")
+        axes.append({"name": r.get("name"), "value": fmt_num(r.get("points")),
+                     "count": r.get("count"),
+                     "lx": "%.1f" % lx, "ly": "%.1f" % (ly + 3), "anchor": anchor,
+                     "em": r.get("em") or ""})
+    rings = [{"points": " ".join("%.1f,%.1f" % at(i, f) for i in range(n))}
+             for f in RADAR_RINGS]
+    return {"ok": "1", "points": " ".join(pts), "rings": rings,
+            "spokes": spokes, "axes": axes, "top": fmt_num(top)}
 
 
 def difficulty_counts(items):
@@ -834,9 +982,19 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
         model = strip_markup(text_of(parts.get("모범답안", [])))
         by_no[no] = {
             "item": it,
-            # 갈래는 **유형이 정한다.** 선지 유무로 가르면, 선지를 못 읽은 객관식이
-            # 서술형으로 둔갑해 «모범답안이 없다» 는 엉뚱한 차단이 난다 (명지고2 34번).
-            "kind": "서술형" if is_essay(it.get("type")) else "객관식",
+            # 갈래는 **유형이 먼저 정한다.** 선지 유무«만»으로 가르면, 선지를 못 읽은
+            # 객관식이 서술형으로 둔갑해 «모범답안이 없다» 는 엉뚱한 차단이 난다
+            # (명지고2 34번).
+            #
+            # 그런데 유형만 보면 **영어 밖에서 깨진다.** 수학의 유형은 행동영역
+            # (「문제해결」), 국어는 다섯 갈래(「문법」)라 서답형이어도 유형에
+            # «서술형» 이라는 말이 없다. 그래서 수학·국어 목업 둘 다 서답형에
+            # 「객관식」 배지가 붙었고, 양쪽이 똑같은 fix_report.py 로 손을 봤다.
+            #
+            # 그래서 둘을 **함께** 본다 — 유형이 말해 주거나, 아니면
+            # «모범답안이 있고 선지가 없다». 34번은 모범답안이 없으므로 그대로 객관식이다.
+            "kind": ("서술형" if is_essay(it.get("type")) or (model and not choices)
+                     else "객관식"),
             "conditions": conditions,
             "givens": givens,
             "model_answer": model,
@@ -955,6 +1113,45 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
     report["types"] = all_types[:TYPES_SUMMARY] if summary else all_types
     report["chapters"] = aggregate(items, "source")
 
+    # 어느 막대를 칠할지는 사람이 지목한다 — exam.json 의 emphasis.
+    # 없으면 아무 것도 칠하지 않는다(layout-grammar.md §6). 1위를 대신 칠하지 않는다.
+    em = exam.get("emphasis") or {}
+    if not isinstance(em, dict):
+        errors.append("exam.json 의 emphasis 는 {\"types\": \"…\", \"chapters\": \"…\"} 꼴이어야 합니다.")
+        em = {}
+    # 자르기 «전» 목록에 지목한다 — 요약본은 상위 3개만 싣는데, 자른 뒤에
+    # 재면 4위를 지목한 것이 「그런 줄이 없습니다」로 잘못 걸린다.
+    # §6 막대 아래 «한 문장 해석». 숫자만 두면 읽는 사람이 결론을 못 낸다.
+    # 지어내지 않는다 — 분석자가 exam.json 에 쓴 것을 그대로 옮긴다. 없으면 빈다.
+    for key in ("types_note", "chapters_note"):
+        report[key] = plain(exam.get(key) or "")
+
+    # §9-2 / 채움 블록 — 난이도 5단을 «갈래마다 몇 문항 몇 점, 몇 번» 으로 편다.
+    # 세는 일이라 사람이 쓸 것이 없다. 빌더가 센다.
+    report.setdefault("difficulty", {})
+    report["difficulty"]["detail"] = [
+        {"label": label, "count": cnt, "points": pts,
+         "nos": "·".join(str(int(i["no"])) for i in items
+                         if i.get("difficulty") == label) + "번"}
+        for label, cnt, pts in difficulty_counts(items) if cnt
+    ]
+
+    # §9-2 레이다 — 유형 막대와 같은 데이터를 다른 꼴로 본다.
+    # 강조(em)를 먼저 찍고 나서 편다 — 축 이름에 그 표시가 따라가야 한다.
+    mark_emphasis(all_types, em.get("types"), "유형별", errors)
+    mark_emphasis(report["chapters"], em.get("chapters"), "출제별", errors)
+    if summary and em.get("types") and not any(r.get("em") for r in report["types"]):
+        print("  [알림] 유형 강조 «%s» 는 요약본 상위 %d줄 밖이라 요약본에는 안 칠해집니다."
+              % (em["types"], TYPES_SUMMARY))
+    # 레이다는 **자르기 전 전체**를 본다. 요약본의 막대는 상위 3개만 싣지만,
+    # 레이다까지 셋이 되면 삼각형 하나라 «분포» 가 안 보인다 — 그게 레이다를
+    # 쓰는 까닭 자체를 지운다. 막대는 많이 나온 것을, 레이다는 전체 꼴을 말한다.
+    report["radar"] = build_radar(all_types)
+    if report.get("overview", {}).get("cards"):
+        split_cards(report["overview"]["cards"], errors)
+    if errors:
+        fail(errors)
+
     counts = difficulty_counts(items)
     diff = dict(report.get("difficulty") or exam.get("difficulty") or {})
     if not diff.get("summary"):
@@ -976,9 +1173,15 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
         # 두 꼴을 템플릿이 갈라 그릴 수 있게 kind 를 함께 넘긴다.
         answer = (rec["model_answer"] if rec["kind"] == "서술형"
                   else norm_answer(it.get("answer")))
+        steps, step_err = split_steps(rec["steps"])
+        for e in step_err:
+            errors.append("%d번 킬러: %s" % (no, e))
         return {
             "no": no,
             "kind": rec["kind"],
+            # §4 카드 머리띠 오른쪽 = «어디서 온 것인가». 문항이 이미 알고 있다.
+            "source": it.get("source") or "",
+            "steps_flow": steps,
             "title": rec["title_hint"] or ("%s — %s" % (it.get("type"), it.get("source"))),
             "why": rec["why"],
             "steps": rec["steps"],
@@ -993,6 +1196,12 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
         }
 
     report["killer"] = [killer_row(it) for it in killers]
+    # killer_row() 안에서 담은 오류를 **여기서** 낸다.
+    # 마지막 `if errors: fail()` 은 이 줄보다 앞에 있어서, 여기서 안 내면
+    # 그대로 버려진다 — ★ 를 둘 찍어도 조용히 통과하고 두 칸이 다 칠해졌다.
+    # 재기는 하는데 결과를 아무도 안 보는, 이 스킬이 가장 싫어하는 꼴이었다.
+    if errors:
+        fail(errors)
 
     # 킬러를 누가 어떤 규칙으로 골랐는가. 반년 뒤에 «왜 이 문항이 킬러였지» 를 여기서 읽는다.
     report["killer_selection"] = {

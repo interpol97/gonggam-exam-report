@@ -27,60 +27,358 @@
   "overview": {
     "highlight": "서술형이 4문항 24점입니다. 객관식을 다 맞혀도 서술형에서 갈립니다.",
     "cards": [
-      { "label": "총 문항", "value": "25문항" },
-      { "label": "총점", "value": "100점" },
-      { "label": "서술형", "value": "4문항 24점" },
-      { "label": "지문 출처", "value": "3갈래" }
+      {
+        "label": "총 문항",
+        "value": "25문항",
+        "num": "25",
+        "unit": "문항"
+      },
+      {
+        "label": "총점",
+        "value": "100점",
+        "num": "100",
+        "unit": "점"
+      },
+      {
+        "label": "서술형",
+        "value": "4문항 24점",
+        "num": "4",
+        "unit": "문항 24점"
+      },
+      {
+        "label": "지문 출처",
+        "value": "3갈래",
+        "num": "3",
+        "unit": "갈래"
+      }
     ]
   },
   "items": [
-    {"no": 1, "type": "세부내용", "points": 3, "difficulty": "중하", "source": "교과서 1과", "answer": "3", "basis": "일치/불일치 — 본문 그대로 대조", "confidence": "high"},
-    {"no": 2, "type": "대의파악", "points": 3, "difficulty": "중", "source": "교과서 1과", "answer": "1", "basis": "daeui:되풀이되는 말 = community garden", "confidence": "high"},
-    {"no": 3, "type": "어휘", "points": 3, "difficulty": "중하", "source": "교과서 1과", "answer": "4", "basis": "voca:혼동어휘 adapt/adopt", "confidence": "high"},
-    {"no": 4, "type": "어법", "points": 4, "difficulty": "중상", "source": "교과서 1과", "answer": "2", "basis": "golden:분사 vs 동사 — 주절에 본동사 이미 있음", "confidence": "high"},
-    {"no": 5, "type": "빈칸추론", "points": 4, "difficulty": "중상", "source": "교과서 2과", "answer": "5", "basis": "binkan:원칙1 맥락 — 02번 주제문 되풀이 자리", "confidence": "high"},
-    {"no": 6, "type": "글의 흐름", "points": 4, "difficulty": "상", "source": "교과서 2과", "answer": "3", "basis": "order:지칭 — this practice 가 가리킬 선행 문장", "confidence": "high"},
-    {"no": 7, "type": "세부내용", "points": 3, "difficulty": "하", "source": "교과서 2과", "answer": "2", "basis": "도표 수치 직접 대조", "confidence": "high"},
-    {"no": 8, "type": "대의파악", "points": 3, "difficulty": "중", "source": "교과서 2과", "answer": "4", "basis": "daeui:예시(농부 사례)를 주제로 잡는 함정", "confidence": "high"},
-    {"no": 9, "type": "어법", "points": 4, "difficulty": "중상", "source": "교과서 2과", "answer": "1", "basis": "golden:관계대명사 what/that 구분", "confidence": "high"},
-    {"no": 10, "type": "어휘", "points": 3, "difficulty": "중", "source": "교과서 3과", "answer": "5", "basis": "voca:유의어 sustain/maintain 문맥 판별", "confidence": "high"},
-    {"no": 11, "type": "빈칸추론", "points": 5, "difficulty": "상", "source": "교과서 3과", "answer": "2", "basis": "binkan:원칙2 후반 위치 → 난도 상", "confidence": "high"},
-    {"no": 12, "type": "글의 흐름", "points": 4, "difficulty": "중상", "source": "교과서 3과", "answer": "4", "basis": "order:연결 — However 앞뒤 의미 단절", "confidence": "high"},
-    {"no": 13, "type": "세부내용", "points": 3, "difficulty": "중하", "source": "교과서 3과", "answer": "3", "basis": "안내문 조건 대조", "confidence": "high"},
-    {"no": 14, "type": "대의파악", "points": 4, "difficulty": "중", "source": "부교재 수특 12강", "answer": "1", "basis": "daeui:제목 — 과잉일반화 오답 2·5", "confidence": "high"},
-    {"no": 15, "type": "어법", "points": 4, "difficulty": "상", "source": "부교재 수특 12강", "answer": "5", "basis": "golden:도치 — 부정어 도치 후 조동사 위치", "confidence": "high"},
-    {"no": 16, "type": "어휘", "points": 3, "difficulty": "중", "source": "부교재 수특 14강", "answer": "2", "basis": "voca:반의어 scarce/abundant", "confidence": "high"},
-    {"no": 17, "type": "빈칸추론", "points": 5, "difficulty": "상", "source": "부교재 수특 14강", "answer": "4", "basis": "binkan:원칙4 부정어 없음 → 같은 말이 정답", "confidence": "high"},
-    {"no": 18, "type": "글의 흐름", "points": 4, "difficulty": "중상", "source": "부교재 수특 18강", "answer": "3", "basis": "order:시간순서 — 연도 표지", "confidence": "high"},
-    {"no": 19, "type": "세부내용", "points": 3, "difficulty": "중하", "source": "모의고사 3월", "answer": "5", "basis": "불일치 — 선지 3 수치 조작", "confidence": "high"},
-    {"no": 20, "type": "대의파악", "points": 3, "difficulty": "중", "source": "모의고사 3월", "answer": "2", "basis": "daeui:요지 — 방향오류 오답 4", "confidence": "high"},
-    {"no": 21, "type": "어법", "points": 4, "difficulty": "중상", "source": "모의고사 3월", "answer": "1", "basis": "golden:수일치 — 삽입구 뒤 주어 복수", "confidence": "high"},
-    {"no": 22, "type": "서술형", "points": 6, "difficulty": "상", "source": "교과서 2과", "answer": "본문참조", "basis": "golden:어법 고쳐쓰기 — 능동/수동", "confidence": "high"},
-    {"no": 23, "type": "서술형", "points": 6, "difficulty": "중상", "source": "교과서 3과", "answer": "본문참조", "basis": "daeui:요약문 완성 — 핵심어 2개", "confidence": "high"},
-    {"no": 24, "type": "서술형", "points": 6, "difficulty": "중상", "source": "부교재 수특 12강", "answer": "본문참조", "basis": "조건 영작 — 관계사 필수", "confidence": "high"},
-    {"no": 25, "type": "서술형", "points": 6, "difficulty": "상", "source": "모의고사 3월", "answer": "본문참조", "basis": "binkan:빈칸 완성 — 본문 패러프레이즈", "confidence": "high"}
+    {
+      "no": 1,
+      "type": "세부내용",
+      "points": 3,
+      "difficulty": "중하",
+      "source": "교과서 1과",
+      "answer": "3",
+      "basis": "일치/불일치 — 본문 그대로 대조",
+      "confidence": "high"
+    },
+    {
+      "no": 2,
+      "type": "대의파악",
+      "points": 3,
+      "difficulty": "중",
+      "source": "교과서 1과",
+      "answer": "1",
+      "basis": "daeui:되풀이되는 말 = community garden",
+      "confidence": "high"
+    },
+    {
+      "no": 3,
+      "type": "어휘",
+      "points": 3,
+      "difficulty": "중하",
+      "source": "교과서 1과",
+      "answer": "4",
+      "basis": "voca:혼동어휘 adapt/adopt",
+      "confidence": "high"
+    },
+    {
+      "no": 4,
+      "type": "어법",
+      "points": 4,
+      "difficulty": "중상",
+      "source": "교과서 1과",
+      "answer": "2",
+      "basis": "golden:분사 vs 동사 — 주절에 본동사 이미 있음",
+      "confidence": "high"
+    },
+    {
+      "no": 5,
+      "type": "빈칸추론",
+      "points": 4,
+      "difficulty": "중상",
+      "source": "교과서 2과",
+      "answer": "5",
+      "basis": "binkan:원칙1 맥락 — 02번 주제문 되풀이 자리",
+      "confidence": "high"
+    },
+    {
+      "no": 6,
+      "type": "글의 흐름",
+      "points": 4,
+      "difficulty": "상",
+      "source": "교과서 2과",
+      "answer": "3",
+      "basis": "order:지칭 — this practice 가 가리킬 선행 문장",
+      "confidence": "high"
+    },
+    {
+      "no": 7,
+      "type": "세부내용",
+      "points": 3,
+      "difficulty": "하",
+      "source": "교과서 2과",
+      "answer": "2",
+      "basis": "도표 수치 직접 대조",
+      "confidence": "high"
+    },
+    {
+      "no": 8,
+      "type": "대의파악",
+      "points": 3,
+      "difficulty": "중",
+      "source": "교과서 2과",
+      "answer": "4",
+      "basis": "daeui:예시(농부 사례)를 주제로 잡는 함정",
+      "confidence": "high"
+    },
+    {
+      "no": 9,
+      "type": "어법",
+      "points": 4,
+      "difficulty": "중상",
+      "source": "교과서 2과",
+      "answer": "1",
+      "basis": "golden:관계대명사 what/that 구분",
+      "confidence": "high"
+    },
+    {
+      "no": 10,
+      "type": "어휘",
+      "points": 3,
+      "difficulty": "중",
+      "source": "교과서 3과",
+      "answer": "5",
+      "basis": "voca:유의어 sustain/maintain 문맥 판별",
+      "confidence": "high"
+    },
+    {
+      "no": 11,
+      "type": "빈칸추론",
+      "points": 5,
+      "difficulty": "상",
+      "source": "교과서 3과",
+      "answer": "2",
+      "basis": "binkan:원칙2 후반 위치 → 난도 상",
+      "confidence": "high"
+    },
+    {
+      "no": 12,
+      "type": "글의 흐름",
+      "points": 4,
+      "difficulty": "중상",
+      "source": "교과서 3과",
+      "answer": "4",
+      "basis": "order:연결 — However 앞뒤 의미 단절",
+      "confidence": "high"
+    },
+    {
+      "no": 13,
+      "type": "세부내용",
+      "points": 3,
+      "difficulty": "중하",
+      "source": "교과서 3과",
+      "answer": "3",
+      "basis": "안내문 조건 대조",
+      "confidence": "high"
+    },
+    {
+      "no": 14,
+      "type": "대의파악",
+      "points": 4,
+      "difficulty": "중",
+      "source": "부교재 수특 12강",
+      "answer": "1",
+      "basis": "daeui:제목 — 과잉일반화 오답 2·5",
+      "confidence": "high"
+    },
+    {
+      "no": 15,
+      "type": "어법",
+      "points": 4,
+      "difficulty": "상",
+      "source": "부교재 수특 12강",
+      "answer": "5",
+      "basis": "golden:도치 — 부정어 도치 후 조동사 위치",
+      "confidence": "high"
+    },
+    {
+      "no": 16,
+      "type": "어휘",
+      "points": 3,
+      "difficulty": "중",
+      "source": "부교재 수특 14강",
+      "answer": "2",
+      "basis": "voca:반의어 scarce/abundant",
+      "confidence": "high"
+    },
+    {
+      "no": 17,
+      "type": "빈칸추론",
+      "points": 5,
+      "difficulty": "상",
+      "source": "부교재 수특 14강",
+      "answer": "4",
+      "basis": "binkan:원칙4 부정어 없음 → 같은 말이 정답",
+      "confidence": "high"
+    },
+    {
+      "no": 18,
+      "type": "글의 흐름",
+      "points": 4,
+      "difficulty": "중상",
+      "source": "부교재 수특 18강",
+      "answer": "3",
+      "basis": "order:시간순서 — 연도 표지",
+      "confidence": "high"
+    },
+    {
+      "no": 19,
+      "type": "세부내용",
+      "points": 3,
+      "difficulty": "중하",
+      "source": "모의고사 3월",
+      "answer": "5",
+      "basis": "불일치 — 선지 3 수치 조작",
+      "confidence": "high"
+    },
+    {
+      "no": 20,
+      "type": "대의파악",
+      "points": 3,
+      "difficulty": "중",
+      "source": "모의고사 3월",
+      "answer": "2",
+      "basis": "daeui:요지 — 방향오류 오답 4",
+      "confidence": "high"
+    },
+    {
+      "no": 21,
+      "type": "어법",
+      "points": 4,
+      "difficulty": "중상",
+      "source": "모의고사 3월",
+      "answer": "1",
+      "basis": "golden:수일치 — 삽입구 뒤 주어 복수",
+      "confidence": "high"
+    },
+    {
+      "no": 22,
+      "type": "서술형",
+      "points": 6,
+      "difficulty": "상",
+      "source": "교과서 2과",
+      "answer": "본문참조",
+      "basis": "golden:어법 고쳐쓰기 — 능동/수동",
+      "confidence": "high"
+    },
+    {
+      "no": 23,
+      "type": "서술형",
+      "points": 6,
+      "difficulty": "중상",
+      "source": "교과서 3과",
+      "answer": "본문참조",
+      "basis": "daeui:요약문 완성 — 핵심어 2개",
+      "confidence": "high"
+    },
+    {
+      "no": 24,
+      "type": "서술형",
+      "points": 6,
+      "difficulty": "중상",
+      "source": "부교재 수특 12강",
+      "answer": "본문참조",
+      "basis": "조건 영작 — 관계사 필수",
+      "confidence": "high"
+    },
+    {
+      "no": 25,
+      "type": "서술형",
+      "points": 6,
+      "difficulty": "상",
+      "source": "모의고사 3월",
+      "answer": "본문참조",
+      "basis": "binkan:빈칸 완성 — 본문 패러프레이즈",
+      "confidence": "high"
+    }
   ],
   "types": [
-    { "name": "서술형", "count": 4, "points": 24 },
-    { "name": "어법", "count": 4, "points": 16 },
-    { "name": "빈칸추론", "count": 3, "points": 14 }
+    {
+      "name": "서술형",
+      "count": 4,
+      "points": 24
+    },
+    {
+      "name": "어법",
+      "count": 4,
+      "points": 16
+    },
+    {
+      "name": "빈칸추론",
+      "count": 3,
+      "points": 14
+    }
   ],
   "difficulty": {
     "summary": "상 6문항 30점, 중상 8문항 36점입니다. 두 구간을 합치면 66점입니다.",
     "discriminator": "11·15·17·25번에서 갈렸습니다. 넷 중 둘이 빈칸추론이고, 나머지는 어법 도치와 서술형입니다.",
     "detail": [
-      { "label": "상", "count": 6, "points": 30, "nos": "6·11·15·17·22·25" },
-      { "label": "중상", "count": 8, "points": 36, "nos": "4·5·9·12·18·21·23·24" },
-      { "label": "중", "count": 6, "points": 19, "nos": "2·8·10·14·16·20" },
-      { "label": "중하", "count": 4, "points": 12, "nos": "1·3·13·19" },
-      { "label": "하", "count": 1, "points": 3, "nos": "7" }
+      {
+        "label": "상",
+        "count": 6,
+        "points": 30,
+        "nos": "6·11·15·17·22·25"
+      },
+      {
+        "label": "중상",
+        "count": 8,
+        "points": 36,
+        "nos": "4·5·9·12·18·21·23·24"
+      },
+      {
+        "label": "중",
+        "count": 6,
+        "points": 19,
+        "nos": "2·8·10·14·16·20"
+      },
+      {
+        "label": "중하",
+        "count": 4,
+        "points": 12,
+        "nos": "1·3·13·19"
+      },
+      {
+        "label": "하",
+        "count": 1,
+        "points": 3,
+        "nos": "7"
+      }
     ]
   },
   "study_plan": [
-    { "week": "1~2주", "focus": "서술형 조건 영작", "todo": "조건 두 개짜리 영작 주 10문항" },
-    { "week": "3주", "focus": "패러프레이즈", "todo": "요약문 빈칸을 바꿔 쓰기로 훈련" },
-    { "week": "4주", "focus": "빈칸추론 후반", "todo": "글 끝 빈칸 지문만 모아 10지문" },
-    { "week": "5주", "focus": "실전 점검", "todo": "같은 구조로 한 세트 풀이" }
+    {
+      "week": "1~2주",
+      "focus": "서술형 조건 영작",
+      "todo": "조건 두 개짜리 영작 주 10문항"
+    },
+    {
+      "week": "3주",
+      "focus": "패러프레이즈",
+      "todo": "요약문 빈칸을 바꿔 쓰기로 훈련"
+    },
+    {
+      "week": "4주",
+      "focus": "빈칸추론 후반",
+      "todo": "글 끝 빈칸 지문만 모아 10지문"
+    },
+    {
+      "week": "5주",
+      "focus": "실전 점검",
+      "todo": "같은 구조로 한 세트 풀이"
+    }
   ],
   "parent_note": [
     "서술형은 채점 기준이 반입니다. 틀린 답을 고쳐 쓴 것까지 봐 주시면 좋습니다.",
@@ -101,7 +399,11 @@
         "(B)는 주어진 낱말 belong 의 어형을 바꿔 쓸 것"
       ],
       "answer": "(A) routine   (B) belonging",
-      "concepts": ["패러프레이즈", "어형 변화", "조건 충족"]
+      "concepts": [
+        "패러프레이즈",
+        "어형 변화",
+        "조건 충족"
+      ]
     }
   ],
   "issues": [
@@ -117,5 +419,42 @@
     "desc": "지문 출처가 셋으로 나뉘었고 상·중상 구간이 66점이었습니다. 기말에도 같은 구조가 유지될 가능성이 높습니다."
   },
   "next_action": "학원은 다음 4주 동안 서술형 조건 영작과 패러프레이즈를 주 2회 따로 잡아 다룹니다.",
-  "disclaimer": "이 요약은 시험지 원본을 바탕으로 작성했습니다. 난이도는 추정치이며 학교 통계와 다를 수 있습니다. 전체 분석은 본편 리포트를 봐 주십시오."
+  "disclaimer": "이 요약은 시험지 원본을 바탕으로 작성했습니다. 난이도는 추정치이며 학교 통계와 다를 수 있습니다. 전체 분석은 본편 리포트를 봐 주십시오.",
+  "chapters": [
+    {
+      "name": "교과서 2과",
+      "count": 6,
+      "points": 24.0
+    },
+    {
+      "name": "교과서 3과",
+      "count": 5,
+      "points": 21.0
+    },
+    {
+      "name": "모의고사 3월",
+      "count": 4,
+      "points": 16.0
+    },
+    {
+      "name": "부교재 수특 12강",
+      "count": 3,
+      "points": 14.0
+    },
+    {
+      "name": "교과서 1과",
+      "count": 4,
+      "points": 13.0
+    },
+    {
+      "name": "부교재 수특 14강",
+      "count": 2,
+      "points": 8.0
+    },
+    {
+      "name": "부교재 수특 18강",
+      "count": 1,
+      "points": 4.0
+    }
+  ]
 }

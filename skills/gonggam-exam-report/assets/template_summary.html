@@ -4,8 +4,12 @@
   ────────────────────────────────────────────────────────────
   손으로 채우는 문서가 아니다. render_report.py 가 채운다 (--summary).
   규격 정본은 references/summary-spec.md. 지시자 계약은 assets/template.html 과 같다.
+  배치 문법 정본은 references/layout-grammar.md — 이 판형은 그 문서의 §2 §3 §6 §7 §9 §10 을 따른다.
 
-  · 색·글꼴을 여기 적지 않는다 — {{THEME_CSS}} 의 변수와 {{FONT_CSS}} 의 'ReportKR' 만 쓴다
+  · 색·글꼴을 여기 적지 않는다 — 테마 css 의 변수와 동봉 글꼴 'ReportKR' 만 쓴다
+    ⚠ 주석에도 치환자를 «글자로» 적지 않는다. 렌더러는 주석 안까지 바꾸므로,
+      여기 적은 그 이름 하나가 동봉 폰트 237KB 를 주석 속에 통째로 밀어 넣는다.
+      화면에는 안 보이고 파일만 두 배가 된다 — 실제로 그렇게 나가고 있었다.
   · 쪽 표시는 꼬리말 오른쪽 구석 한 군데뿐이다. 렌더러가 PDF 를 «재서» 채우므로
     한 장이면 «이 장 1, 전체 1» 이 찍히고, 넘치면 전체가 2 로 바뀌어 사고가 종이에 드러난다.
     그 자리는 흐름 밖(absolute)이라 숫자 폭이 바뀌어도 조판이 밀리지 않는다.
@@ -20,6 +24,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<meta name="gonggam:pages" content="{{TOTAL_PAGES}}">
 <title>{{meta.school}} {{meta.term}} {{meta.subject}} 분석 요약</title>
 <style>
 {{FONT_CSS}}
@@ -29,7 +34,7 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
 
 /* ── 한 장 상자 ─────────────────────────────────────────────
    높이를 265mm 로 못 박는다. 세로 배분은 flex 가 맡고,
-   이슈 문항이 빠져도 총평 **상자**는 내용 높이 그대로다. 남는 만큼은 꼬리말 위 흰 여백으로
+   이슈 문항이 빠져도 마무리 **상자**는 내용 높이 그대로다. 남는 만큼은 꼬리말 위 흰 여백으로
    둔다 (.closing 은 flex:1 0 auto 라 자리를 받되 줄지 않고, .final 은 flex:0 0 auto 다). */
 .sheet{width:182mm;height:265mm;background:#fff;padding:0;
   display:flex;flex-direction:column;gap:3.2mm}
@@ -52,34 +57,135 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
 .cover-brand-text{flex:none;font-size:10.5pt;font-weight:700;color:var(--primary);
   border-right:1pt solid var(--line);padding-right:4mm;white-space:nowrap}
 
-/* ── 숫자 카드 4 · 22mm ── */
-.cards{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2.5mm}
-.card{border:0.9pt solid var(--line);border-top:2.2pt solid var(--primary);border-radius:1.5mm;
-  background:var(--primary-pale);padding:2.4mm 2mm;text-align:center}
-.card .l{font-size:7.5pt;font-weight:700;color:var(--muted);line-height:1.3}
-.card .v{font-size:13pt;font-weight:900;color:var(--primary);line-height:1.25;margin-top:1mm;
-  letter-spacing:-.02em}
-
-/* ── 난이도 5단 + 유형 상위 3 · 35mm ── */
-.band{flex:0 0 auto;display:flex;gap:4mm;align-items:stretch}
-.box{flex:1;min-width:0;border:0.9pt solid var(--line);border-radius:1.5mm;padding:2.2mm 2.6mm;
-  display:flex;flex-direction:column}
-.cap{font-size:8pt;font-weight:700;letter-spacing:.06em;color:var(--primary);
+/* ── 섹션 제목줄 — 좌우 양끝 (layout-grammar §2) ───────────────
+   왼쪽은 «무엇인가»(제목 + 부제는 줄을 새로 쓰지 않고 인라인으로),
+   오른쪽은 «어디서 나온 숫자인가»(작고 흐린 출처 메타).
+   적을 것이 없으면 **비워 둔다** — 채우려고 지어내지 않는다. 빈 칸은 스스로 사라진다.
+   높이는 한 줄 그대로다 — 오른쪽 메타가 붙어도 조판이 안 밀린다. */
+.cap{display:flex;align-items:baseline;justify-content:space-between;gap:2.4mm;
+  font-size:8pt;font-weight:700;letter-spacing:.06em;color:var(--primary);
   padding-bottom:1.2mm;margin-bottom:2mm;border-bottom:0.9pt solid var(--line)}
-.cap span{color:var(--muted);font-weight:600;letter-spacing:0}
-.diffs{display:grid;grid-template-columns:repeat(5,1fr);gap:1.6mm}
-.dbox{border:0.9pt solid var(--line);border-radius:1.2mm;padding:1.6mm 0;text-align:center}
-/* 흑백 복사를 거쳐도 상·중상이 서야 한다 — 색이 아니라 테두리 굵기로 세운다 */
-.d-상,.d-중상{border:1.6pt solid var(--ink)}
-.dbox .n{font-size:12.5pt;font-weight:900;line-height:1.1;letter-spacing:-.02em}
-.dbox .l{font-size:7.5pt;font-weight:700;color:var(--muted);margin-top:.6mm}
-.dnote{font-size:8pt;color:var(--muted);line-height:1.45;margin-top:auto;padding-top:2mm}
-.bar-row{margin-bottom:1.8mm}
+.cap .t{min-width:0}
+.cap .t span{color:var(--muted);font-weight:600;letter-spacing:0}
+.cap .src{flex:none;font-size:7.5pt;font-weight:600;letter-spacing:0;color:var(--muted);
+  white-space:nowrap}
+.cap .src:empty{display:none}
+
+/* ── 숫자 카드 4 (layout-grammar §3) ───────────────────────────
+   값과 단위를 **한 덩어리**로 둔다 — baseline 을 맞추고 사이를 0.6mm 로 조인다.
+   본본은 화면 기준 46px / 15px 인데, 우리는 182mm 를 넷으로 나눈 칸이라 같은 비율로
+   줄여 18pt / 8.5pt 로 쓴다. 비율(약 2.1:1)과 «한 덩어리»가 규격이고 픽셀값이 아니다.
+   라벨은 값 **아래** 한 줄. 값이 먼저 눈에 들어와야 한다. */
+.cards{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2.5mm}
+.card{border:0.9pt solid var(--line);border-top:2.2pt solid var(--primary);
+  border-radius:var(--radius,3mm);box-shadow:var(--shadow,0 .3mm 1.1mm var(--line));
+  background:var(--primary-pale);padding:2.2mm 2mm 2.4mm;text-align:center}
+.card .v{display:flex;align-items:baseline;justify-content:center;gap:.6mm;
+  font-size:18pt;font-weight:900;color:var(--primary);letter-spacing:-.04em;line-height:1.05}
+.card .n{min-width:0}
+.card .u{flex:none;font-size:8.5pt;font-weight:700;letter-spacing:0}
+.card .l{margin-top:1.2mm;font-size:7.5pt;font-weight:700;color:var(--muted);line-height:1.3}
+/* 넷 중 **하나만** 강조한다. 둘을 칠하면 둘 다 안 보인다 (§0-2 · §11).
+   칠할 칸은 **데이터가 지목한다** — report_build.py 의 split_cards 가 숫자로 시작하지
+   않는 카드(=«말» 카드, 「오늘의 핵심」자리)에만 단위를 비워 두고 key 를 세운다.
+   그 «단위가 빈 칸» 이 강조 칸이다. 지목이 없으면 **아무 것도 칠하지 않는다.**
+   ※ 렌더러가 key 를 속성으로 찍어 주면(data-key) 그 쪽이 더 곧다 — 아래 선택자가 둘 다 받는다.
+     class 로 찍지 않는 이유는 게이트가 카드를 class 이름 글자로 세기 때문이다. */
+.cards .card[data-unit=""],.cards .card[data-key="1"]{
+  background:var(--accent-pale);border-top-color:var(--accent);border-color:var(--accent)}
+.cards .card[data-unit=""] .v,.cards .card[data-key="1"] .v{
+  color:var(--accent);font-size:11pt;line-height:1.25}
+.cards .card[data-unit=""] .u,.cards .card[data-key="1"] .u{color:var(--accent)}
+
+/* ── 난이도 5단 + 유형 상위 3 — 2×2 카드 꼴 (layout-grammar §9-2) ──
+   머리에 옅은 색 띠(제목 옆에 부제를 인라인으로), 가운데 그래프,
+   발에 점선 + 2열 수치(라벨 작게 흐리게 / 값 크게 강조색). */
+.band{flex:0 0 auto;display:flex;gap:3.4mm;align-items:stretch}
+/* 상자 셋은 **같은 카드가 셋** 이 아니다 — 왼쪽은 세로 막대, 가운데는 다각형, 오른쪽은
+   가로 막대다. 너비도 일부러 다르게 준다(좁게 · 정사각 · 넓게). 라운드와 그림자는
+   테마가 주면 그것을 쓰고, 없으면 얇은 선색으로 아주 옅게 깐다 — 색 값을 여기 적지 않는다. */
+.box{flex:1;min-width:0;border:0.9pt solid var(--line);border-radius:var(--radius,3mm);padding:0;
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:var(--shadow,0 .3mm 1.1mm var(--line))}
+.box>.cap{background:var(--primary-pale);margin:0;padding:1.1mm 2.8mm;border-radius:0}
+.box>.body{flex:1;min-width:0;display:flex;flex-direction:column;padding:2.2mm 2.8mm 0}
+/* 막대 칸을 조금 넓게 잡는다 — 막대 아래 해석 문장이 두 줄로 접히면 밴드가 통째로 커진다 */
+.box.wide{flex:1.45}
+/* 발 — 점선은 «카드 안 소구분»이다. 실선(섹션 경계)과 바꿔 쓰지 않는다 (§0-4).
+   라벨과 값을 세로로 쌓아 두 칸만 세운다 — 옆으로 넷을 늘어놓으면 표로 읽힌다. */
+.foot{flex:none;margin:1mm 2.8mm 1.6mm;padding-top:.9mm;
+  border-top:0.7pt dotted var(--muted);display:grid;grid-template-columns:1fr 1fr;gap:2.8mm}
+.foot>div{display:flex;align-items:baseline;justify-content:space-between;gap:1.4mm;min-width:0}
+.foot .fl{font-size:6.5pt;font-weight:700;color:var(--muted);letter-spacing:.02em;line-height:1.2;
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.foot .fv{flex:none;font-size:9pt;font-weight:900;color:var(--accent);letter-spacing:-.02em;
+  line-height:1.2}
+/* 난이도 5단 — 숫자 다섯을 늘어놓지 않는다. **높이**가 먼저 읽히고 숫자가 그 값을 말한다
+   (layout-grammar §6 의 가로 막대를 세로로 세운 꼴).
+   칸 높이는 «그 난이도의 문항 수 ÷ 전체 문항 수» 다. 렌더러가 난이도 칸에는 비중을
+   따로 주지 않으므로(막대 너비는 types·chapters 에만 붙는다) 판형이 그 자리에서 셈한다.
+   전체의 30%가 꽉 찬 칸이고, 그보다 큰 칸은 트랙 끝에서 멈춘다 —
+   그때도 **숫자가 칸 위에 그대로** 있어 값을 잃지 않는다.
+   ※ 칸 class 이름(dbox)을 바꾸지 않는다 — 게이트가 이 이름으로 다섯 칸을 센다. */
+.diffs{display:grid;grid-template-columns:repeat(5,1fr);gap:1.4mm;align-items:end}
+.dbox{min-width:0;text-align:center;display:flex;flex-direction:column;gap:.7mm}
+.dbox .n{font-size:10.5pt;font-weight:900;line-height:1;letter-spacing:-.02em;color:var(--primary)}
+/* 트랙 높이는 **밴드를 키우지 않는 선**까지다. 밴드 높이는 가장 높은 상자(유형 막대)가
+   정하고, 난이도 상자에는 그만큼 남는 자리가 있다 — 그 자리를 막대에 준다.
+   12.5mm 로 올렸다가 밴드가 61.1mm 가 되어 마무리가 둘째 장으로 넘어간 적이 있다. 재고 정한다. */
+.dtrack{height:11mm;display:flex;align-items:flex-end;border-bottom:0.9pt solid var(--line)}
+.dfill{width:100%;max-height:100%;min-height:1.1mm;background:var(--primary);opacity:.32;
+  border-radius:1mm 1mm 0 0}
+/* 흑백 복사를 거쳐도 상·중상이 서야 한다 — 색이 아니라 **채움 농도와 테두리**로 세운다 */
+.d-상 .dfill,.d-중상 .dfill{opacity:1;border:1.4pt solid var(--ink)}
+.d-상 .l,.d-중상 .l{color:var(--ink)}
+.dbox .l{font-size:7.5pt;font-weight:700;color:var(--muted);line-height:1.2}
+.dnote{font-size:8pt;color:var(--muted);line-height:1.45;margin-top:auto;padding-top:1.6mm}
+/* ── 가로 막대 (layout-grammar §6) ─────────────────────────────
+   강조는 «1위» 가 아니라 «데이터가 지목한 행»이다. :first-of-type 을 칠하지 않는다 —
+   1위가 늘 문제인 것이 아니다. 지목이 없으면 아무 것도 칠하지 않는다.
+   칠할 자리는 bar-row 에 em 을 얹는 것이고, 그 꼴을 여기서 받아 둔다
+   (report_build.py 가 types 행에 em 을 세워 준다. 렌더러가 그 값을 class 로 옮기면 켜진다). */
+.bar-row{margin-bottom:.9mm}
 .bar-row:last-child{margin-bottom:0}
-.bar-head{display:flex;justify-content:space-between;gap:2mm;font-size:8.5pt;font-weight:700;margin-bottom:.8mm}
+.bar-head{display:flex;justify-content:space-between;gap:2mm;font-size:8pt;font-weight:700;margin-bottom:.6mm}
 .bar-head .r{color:var(--muted);font-weight:600;flex:none}
-.bar-track{height:2.6mm;background:var(--gray-pale);border:0.6pt solid var(--line);border-radius:1.3mm;overflow:hidden}
+.bar-track{height:2.2mm;background:var(--gray-pale);border:0.6pt solid var(--line);border-radius:1.1mm;overflow:hidden}
 .bar-fill{height:100%;background:var(--primary)}
+/* 지목받은 행. **class 가 아니라 속성**으로 받는다 — 게이트가 막대 줄을
+   class 이름 글자 그대로(bar-row 뒤에 바로 따옴표) 세기 때문이다.
+   class 뒤에 낱말을 덧붙이면 「유형 막대가 0줄」로 막힌다. 실제로 막혔다.
+   면에 쓰는 강조색을 따로 둔 테마면 그쪽을, 없으면 강조색을 쓴다. */
+.bar-row[data-em="em"] .bar-fill{background:var(--accent-fill,var(--accent))}
+.bar-row[data-em="em"] .bar-head{color:var(--accent)}
+/* 막대 아래 한 문장 해석 — 숫자만 두면 읽는 사람이 결론을 못 낸다 (§6).
+   뒤에 붙는 작은 글씨가 **범례**다. 색과 길이가 무슨 뜻인지 여기서 말한다 (§7) */
+.bar-note{font-size:8pt;line-height:1.45;margin-top:auto;padding-top:.6mm}
+.bar-note .lg{display:block;font-size:7.5pt;color:var(--muted);margin-top:.3mm}
+
+/* ── 레이다 — 유형별 배점 분포 (layout-grammar §9-2 의 «가운데 그래프» 자리) ──
+   빌더(report_build.py)가 좌표를 준다. 판형은 받은 좌표를 그대로 그린다 —
+   viewBox 는 0 0 200 200 좌표계이고, 중심 100,100 · 반지름 72 다.
+   창(viewBox)을 그보다 넓게 잡은 것은 **축 이름이 바깥에 놓이기 때문**이다.
+   좌표를 바꾸는 것이 아니라 보이는 범위만 넓힌 것이다.
+
+   · 축이 셋 미만이면 빌더가 ok 를 빈 값으로 준다. 그러면 상자째 사라진다
+     (아래 선택자). 축 둘로는 다각형이 서지 않는다.
+   · 바깥 그림 라이브러리를 쓰지 않는다. 인쇄용 PDF 라 스크립트가 돌 자리가 없다.
+   · 선은 진하게, 면은 같은 색을 옅게. 파스텔 면만으로 그리지 않는다 —
+     면만 옅으면 흑백 복사와 색각 이상에서 통째로 사라진다.
+   · 꼭짓점 점은 marker 로 찍는다. 빌더가 주는 것은 다각형 한 줄이라
+     점마다 좌표를 따로 받지 않아도 되게 한 것이다. */
+.box.radar{flex:0 0 54mm}
+.box.radar[data-ok=""]{display:none}
+.rd{display:block;width:100%;height:auto;margin:auto 0}
+.rd-grid{fill:none;stroke:var(--line);stroke-width:1.3}
+.rd-area{fill:var(--primary);fill-opacity:.22;stroke:var(--primary);stroke-width:2.4;
+  stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.rd-dot{fill:var(--primary)}
+.rd-lbl{font-size:14px;font-weight:700;fill:var(--ink)}
+/* 범례 — 면과 고리가 무슨 뜻인지 바로 아래 작은 글씨로 적는다 (layout-grammar §7) */
+.rd-note{font-size:7.5pt;color:var(--muted);line-height:1.35;margin-top:auto;padding:1.2mm 0 2mm}
 
 /* ── 대표 문항 · 객관식 50mm / 서술형 45mm ───────────────────
    두 꼴을 받는다. 객관식이면 «선지»가, 서술형이면 «조건 상자»가 찍힌다.
@@ -87,8 +193,9 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
    REPEAT 가 0번 돌면 그 상자는 진짜로 비고, :empty 가 자리째 없앤다.
    그래서 두 상자는 여는 태그에 REPEAT 를 붙여 한 줄로 쓴다.
    줄바꿈이 한 칸이라도 남으면 «빈» 상자가 아니게 되어 빈 테두리가 인쇄된다. */
-.killer{flex:0 0 auto;border:1.4pt solid var(--primary);border-radius:2mm;padding:2.8mm 3mm 2.6mm}
-.k-head{display:flex;align-items:center;gap:2.5mm;margin-bottom:2mm}
+.killer{flex:0 0 auto;border:1.4pt solid var(--primary);border-radius:var(--radius,3mm);
+  box-shadow:var(--shadow,0 .3mm 1.1mm var(--line));padding:2.3mm 3.2mm 2.2mm}
+.k-head{display:flex;align-items:center;gap:2.5mm;margin-bottom:1.6mm}
 .k-tag{flex:none;border:1.2pt solid var(--primary);color:var(--primary);border-radius:1.2mm;
   padding:.8mm 2mm;font-size:7.5pt;font-weight:700}
 .k-no{flex:none;font-size:10.5pt;font-weight:900;color:var(--primary);letter-spacing:-.02em}
@@ -97,15 +204,18 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
   padding:.8mm 2.2mm;font-size:8pt;font-weight:700;white-space:nowrap}
 /* 발췌: 줄바꿈을 데이터 그대로 살린다. 6줄 한도는 규격 문서가 정하고 게이트가 막는다 */
 .k-excerpt{white-space:pre-line;font-size:8.8pt;line-height:1.52;background:var(--gray-pale);
-  border-left:2.2pt solid var(--line);border-radius:1mm;padding:2mm 2.4mm}
+  border-left:2.2pt solid var(--line);border-radius:1mm;padding:1.6mm 2.4mm}
+/* 범례 캡션 (§7) — 면을 썼으면 그 면이 무슨 뜻인지 바로 아래 작은 글씨로 적는다.
+   이걸 빠뜨리면 회색 면이 학원이 손댄 글인지 시험지 원문인지 아무도 모른다. */
+.k-cap{font-size:7pt;color:var(--muted);line-height:1.3;margin-top:.8mm}
 /* 선지 — 객관식에만. choices 가 비면 자리째 사라진다 */
-.k-choices{display:flex;flex-wrap:wrap;gap:1.4mm 3mm;margin-top:2mm}
+.k-choices{display:flex;flex-wrap:wrap;gap:1.4mm 3mm;margin-top:1.6mm}
 .k-choices:empty{display:none}
 .k-choice{display:flex;gap:1.4mm;align-items:baseline;font-size:8.5pt;line-height:1.35;max-width:100%}
 .k-choice .cn{flex:none;min-width:4mm;height:4mm;border:0.9pt solid var(--muted);border-radius:.8mm;
   font-size:7pt;font-weight:700;color:var(--muted);text-align:center;line-height:4mm}
 /* 조건 상자 — 서술형에만. conditions 가 비면 자리째 사라진다 */
-.k-cond{margin-top:2mm;border:1pt dashed var(--muted);border-radius:1.2mm;padding:1.8mm 2.4mm}
+.k-cond{margin-top:1.6mm;border:1pt dashed var(--muted);border-radius:1.2mm;padding:1.6mm 2.4mm}
 .k-cond:empty{display:none}
 .k-cond::before{content:"〈조건〉";display:block;font-size:7.5pt;font-weight:700;
   color:var(--primary);letter-spacing:.04em;margin-bottom:1.2mm}
@@ -119,13 +229,13 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
    세므로, 바깥 칸에 낱말을 덧붙이면 「정답이 없다」로 막힌다. 실제로 막혔다.
    ※ 주석에도 class 이름을 따옴표째 적지 않는다 — 그것까지 세어 «정답 2개» 가 된다.
      이것도 실제로 겪었다. */
-.k-ans{width:fit-content;max-width:100%;display:flex;gap:2.2mm;align-items:baseline;margin-top:2mm;
-  border:1.2pt solid var(--ink);border-radius:1.2mm;padding:1mm 2.4mm}
+.k-ans{width:fit-content;max-width:100%;display:flex;gap:2.2mm;align-items:baseline;margin-top:1.6mm;
+  border:1.2pt solid var(--ink);border-radius:1.2mm;padding:.8mm 2.4mm}
 .k-ans .lbl{flex:none;font-size:7.5pt;font-weight:700;color:var(--primary);letter-spacing:.04em}
 .k-ans .lbl::before{content:"정답"}
 .k-ans .lbl.kind-서술형::before{content:"모범답안"}
 .k-ans .val{font-size:8.8pt;font-weight:700;line-height:1.35}
-.k-foot{display:flex;gap:3mm;align-items:flex-start;margin-top:2mm}
+.k-foot{display:flex;gap:3mm;align-items:flex-start;margin-top:1.6mm}
 .k-why{font-size:8.5pt;line-height:1.45;color:var(--ink);min-width:0}
 .k-why b{color:var(--primary)}
 .chips{display:flex;flex-wrap:wrap;gap:1.2mm;flex:none;max-width:52mm;justify-content:flex-end}
@@ -134,7 +244,7 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
 
 /* ── 이슈 문항 · 35mm · 없으면 통째로 사라진다 ── */
 .issue{flex:0 0 auto;border:0.9pt solid var(--ink);border-left:3pt solid var(--ink);
-  border-radius:1.5mm;padding:2.6mm 3mm}
+  border-radius:var(--radius,3mm);padding:2.4mm 3.4mm}
 .i-head{display:flex;align-items:center;gap:2.5mm;margin-bottom:1.6mm}
 .i-kind{flex:none;border:1.2pt solid var(--ink);border-radius:1.2mm;padding:.8mm 2.2mm;
   font-size:8pt;font-weight:700;letter-spacing:.02em}
@@ -145,14 +255,15 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
   margin-top:1.6mm;padding-left:2.4mm;border-left:1.2pt solid var(--line)}
 
 /* ── 채움 블록 ────────────────────────────────────────────
-   이슈 문항이 없으면 꼬리말 위에 30mm 넘게 빈다. 그 자리를 «덜 만든 종이» 로 두지 않고
+   이슈 문항이 없으면 꼬리말 위가 크게 빈다. 그 자리를 «덜 만든 종이» 로 두지 않고
    쓸모 있는 것으로 채운다. **자리가 있을 때만** 켠다 — 렌더러가 남은 높이를 재서 고르고,
    높이는 summary-spec.md §4-1 의 실측표가 정본이다.
    하나도 안 켜져도 나머지 조판은 그대로다 (전부 flex:0 0 auto). */
-.fill{flex:0 0 auto;border:0.9pt solid var(--line);border-radius:1.5mm;padding:1.5mm 2.4mm}
+.fill{flex:0 0 auto;border:0.9pt solid var(--line);border-radius:var(--radius,3mm);
+  box-shadow:var(--shadow,0 .3mm 1.1mm var(--line));padding:1.7mm 2.8mm}
 .fill .cap{margin-bottom:1mm;padding-bottom:.8mm}
 /* 주차별 학습 전략 — 주차 | 집중할 것 | 할 일.
-   네 줄이 남는 자리(약 31mm)에 들어가야 해서 행간을 조인다 */
+   네 줄이 남는 자리에 들어가야 해서 행간을 조인다 */
 .plan-row{display:flex;gap:2.4mm;align-items:baseline;font-size:8.2pt;line-height:1.35;
   padding:.4mm 0;border-top:0.6pt dotted var(--line)}
 .plan-row:first-child{border-top:0;padding-top:0}
@@ -170,43 +281,56 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
 .dd-row .dd-c{flex:none;width:24mm;color:var(--muted)}
 .dd-row .dd-n{min-width:0}
 
-/* ── 왜 갈렸나 + 총평 · 이슈가 없으면 이 칸이 넓어진다 ── */
+/* ── 마무리 — 비대칭 2열 (layout-grammar §9-1) ─────────────────
+   왼쪽 **150px 고정**에 결론 하나, 오른쪽 나머지에 근거.
+   **결론이 왼쪽에 먼저 온다** — 막대도 5단도 읽을 줄 모르는 사람이 왼쪽만 보면 되게.
+   예전에는 「갈린 곳」 목록과 총평 상자가 위아래 두 덩어리였다. 둘은 한 덩어리인
+   마무리라 떼어 놓지 않는다 — 좌우로 붙이면 한 덩어리이면서 세로도 줄어든다. */
 /* flex:1 **0** auto — 자리는 받되 **줄어들지는 않는다.**
    줄어들게 두었더니(flex:1 1 auto + min-height) 발췌가 길어질 때 이 칸이 내용보다 작아져
-   총평 상자가 **꼬리말 위에 겹쳐 찍혔다.** 그런데 쪽수는 1쪽이라 게이트도 통과했다 —
+   마무리 상자가 **꼬리말 위에 겹쳐 찍혔다.** 그런데 쪽수는 1쪽이라 게이트도 통과했다 —
    조용한 사고다. 줄어들지 않게 두면 넘칠 때 2쪽이 되고, 게이트가 막는다. */
-.closing{flex:1 0 auto;display:flex;flex-direction:column;gap:2.6mm}
-.why{flex:0 0 auto}
-.why-list{display:flex;flex-direction:column;gap:1.2mm;margin-top:1.6mm}
-.why-list li{list-style:none;position:relative;padding-left:4.2mm;font-size:8.8pt;line-height:1.45}
+.closing{flex:1 0 auto;display:flex;flex-direction:column}
+/* 마무리 상자는 **내용 높이 그대로** 둔다 (flex:0 0 auto).
+   남는 자리를 상자가 먹으면 흰 종이가 아니라 «내용보다 훨씬 큰 빈 강조 상자» 가 남는다.
+   「강조가 많으면 강조가 없다」에 걸린다. 남는 자리는 상자 **밖** 꼬리말 위 흰 여백이 된다. */
+.final{flex:0 0 auto;display:flex;align-items:stretch;
+  border:1.4pt solid var(--primary);border-radius:var(--radius,3mm);
+  background:var(--primary-pale);overflow:hidden}
+.final .sl{flex:0 0 150px;max-width:150px;min-width:0;display:flex;flex-direction:column;
+  border-right:0.9pt solid var(--line)}
+.final .sr{flex:1;min-width:0;display:flex;flex-direction:column}
+/* 두 칸 모두 머리에 **옅은 색 띠**를 두른다 (§9-1 그림). 마무리 상자는 테마에 따라
+   면이 진해질 수 있어 띠 바탕을 여기서 못 박는다 — 안 박으면 진한 면 위에 진한 글씨가
+   얹혀 제목이 통째로 사라진다 (실제로 사라졌다). */
+.final .cap{margin:0;padding:1mm 2.8mm;border-radius:0;
+  background:var(--primary-pale);color:var(--primary);border-bottom-color:var(--primary)}
+.final .sl-body{padding:2mm 2.8mm 2.2mm;display:flex;flex-direction:column;gap:1.2mm}
+.final .sr-body{padding:2mm 3mm 2.2mm;display:flex;flex-direction:column;gap:1.2mm}
+.final .quote{font-size:11.5pt;font-weight:900;color:var(--primary);line-height:1.3;
+  letter-spacing:-.02em}
+.final .desc{font-size:8.5pt;line-height:1.5}
+.why-list{display:flex;flex-direction:column;gap:1.2mm}
+.why-list li{list-style:none;position:relative;padding-left:4.2mm;font-size:8.5pt;line-height:1.45}
 .why-list li::before{content:"";position:absolute;left:0;top:1.4mm;width:2mm;height:2mm;
   background:var(--accent);border-radius:50%}
-/* 총평 상자는 **내용 높이 그대로** 둔다 (flex:0 0 auto).
-   예전에는 남는 자리를 상자가 먹되 52mm 에서 멈추게 했는데, 그러면 흰 종이가 아니라
-   «내용보다 훨씬 큰 빈 파란 상자» 가 남았다. 파란 바탕이 넓으면 그 자체가 강조인데
-   정작 강조할 글은 위쪽에만 있다 — 「강조가 많으면 강조가 없다」에 걸린다.
-   남는 자리는 상자 **밖** 흰 여백이 된다. 상자를 바닥에 붙여 보기도 했는데(margin-top:auto),
-   그러면 «갈린 곳»과 총평 사이가 벌어져 한 덩어리인 마무리가 두 동강으로 읽혔다.
-   붙여 두고 여백은 **꼬리말 위**에 남긴다 — 관련된 것끼리 붙이고 남는 것은 뒤로. */
-.final{flex:0 0 auto;display:flex;flex-direction:column;gap:1.8mm;
-  border:1.4pt solid var(--primary);border-radius:2mm;background:var(--primary-pale);padding:3mm 3.4mm}
-.final .quote{font-size:12.5pt;font-weight:900;color:var(--primary);line-height:1.35;
-  letter-spacing:-.02em}
-.final .desc{font-size:9pt;line-height:1.5}
-/* 「다음 행동」 줄. 가로 구분선을 긋지 않는다 — 총평 상자 안에 긴 가로줄이 셋 생기면
+/* 「다음 행동」 줄. 가로 구분선을 긋지 않는다 — 마무리 상자 안에 긴 가로줄이 셋 생기면
    게이트의 «표 머리글» 검사가 이 상자를 표로 잘못 읽고 막는다. 이름표를 테두리 칩으로
    세워 구분을 대신한다 */
-.next{display:flex;gap:2.4mm;align-items:baseline;margin-top:.6mm}
+.next{display:flex;gap:2.4mm;align-items:baseline;margin-top:auto;padding-top:.6mm}
 .next .nl{flex:none;font-size:8pt;font-weight:700;color:var(--primary);letter-spacing:.04em;
   border:0.9pt solid var(--primary);border-radius:1mm;padding:.4mm 1.6mm}
 .next .nv{font-size:9pt;font-weight:700;line-height:1.45}
 
-/* ── 꼬리말·고지 10mm ── */
+/* ── 꼬리말·고지 10mm (layout-grammar §10) ────────────────────
+   얇은 선 위, 왼쪽 메타 / 오른쪽 쪽번호. **현재 쪽만 굵게**, 총 쪽수는 흐리게.
+   쪽번호는 렌더러가 PDF 를 재서 박는다 — 여기서 세지 않는다. */
 .ft{position:relative;flex:0 0 auto;border-top:0.9pt solid var(--line);padding-top:1.8mm;
   font-size:7.5pt;color:var(--muted);line-height:1.45;padding-right:20mm}
 .ft strong{color:var(--ink)}
 /* 흐름 밖 — 숫자 폭이 바뀌어도 본문이 밀리지 않는다 */
-.pagemark{position:absolute;right:0;top:1.8mm;font-size:7.5pt;font-weight:700;color:var(--muted)}
+.pagemark{position:absolute;right:0;top:1.8mm;font-size:7.5pt;color:var(--muted)}
+.pagemark b{color:var(--ink);font-weight:900}
 .ft-check{margin-top:1.2mm;border:0.9pt dashed var(--muted);border-radius:1.2mm;padding:1.4mm 2mm;
   font-size:7.5pt;color:var(--ink)}
 
@@ -214,7 +338,7 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
 @media print{
   body{background:#fff;padding:0;display:block}
   .sheet{width:auto;box-shadow:none}
-  .card,.box,.killer,.issue,.final,.bar-row,.k-excerpt{page-break-inside:avoid;break-inside:avoid}
+  .card,.box,.killer,.issue,.final,.bar-row,.k-excerpt,.rd{page-break-inside:avoid;break-inside:avoid}
 }
 {{THEME_CSS}}
 </style>
@@ -241,7 +365,7 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
   <!-- SECTION:overview -->
   <div class="cards">
     <!-- REPEAT:overview.cards -->
-    <div class="card"><div class="l">{{label}}</div><div class="v">{{value}}</div></div>
+    <div class="card" data-unit="{{unit}}"><div class="v"><span class="n">{{num}}</span><span class="u">{{unit}}</span></div><div class="l">{{label}}</div></div>
     <!-- /REPEAT:overview.cards -->
   </div>
   <!-- /SECTION:overview -->
@@ -250,24 +374,56 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
   <div class="band">
     <!-- SECTION:difficulty -->
     <div class="box">
-      <div class="cap">난이도 분포 <span>· 5단</span></div>
-      <div class="diffs">
-        <!-- REPEAT:difficulty.bins -->
-        <div class="dbox d-{{label}}"><div class="n">{{count}}</div><div class="l">{{label}}</div></div>
-        <!-- /REPEAT:difficulty.bins -->
+      <div class="cap"><span class="t">난이도 분포 <span>· 5단</span></span><span class="src">{{meta.total_items}}문항 기준</span></div>
+      <div class="body">
+        <div class="diffs">
+          <!-- REPEAT:difficulty.bins -->
+          <div class="dbox d-{{label}}"><div class="n">{{count}}</div><div class="dtrack"><div class="dfill" style="height:calc(330% * {{count}} / {{meta.total_items}})"></div></div><div class="l">{{label}}</div></div>
+          <!-- /REPEAT:difficulty.bins -->
+        </div>
+        <div class="dnote">{{difficulty.summary}}</div>
       </div>
-      <div class="dnote">{{difficulty.summary}}</div>
+      <div class="foot">
+        <div><div class="fl">가장 갈린 문항</div><div class="fv">{{killer.0.no}}번</div></div>
+        <div><div class="fl">그 갈래</div><div class="fv">{{killer.0.kind}}</div></div>
+      </div>
     </div>
     <!-- /SECTION:difficulty -->
-    <!-- SECTION:type-chart -->
-    <div class="box">
-      <div class="cap">많이 나온 유형 <span>· 상위 3</span></div>
-      <!-- REPEAT:types -->
-      <div class="bar-row">
-        <div class="bar-head"><span>{{name}}</span><span class="r">{{count}}문항 · {{points}}점</span></div>
-        <div class="bar-track"><div class="bar-fill" style="width:{{width}}%"></div></div>
+
+    <!-- 레이다 — 좌표는 빌더가 준다. 축이 셋 미만이면 ok 가 비고 상자째 사라진다.
+         고리 넷과 살은 되풀이로 돌린다. 창을 0 0 200 200 보다 넓게 연 것은
+         축 이름이 원 **바깥**에 놓이기 때문이다 — 좌표는 그대로다. -->
+    <!-- SECTION:radar -->
+    <div class="box radar" data-ok="{{radar.ok}}">
+      <div class="cap"><span class="t">유형별 배점 분포 <span>· 전 유형</span></span><span class="src"></span></div>
+      <div class="body">
+        <svg class="rd" viewBox="-46 -10 292 218" role="img" aria-label="유형별 배점 분포 레이다">
+          <defs><marker id="rd-v" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="15" refX="7.5" refY="7.5"><circle class="rd-dot" cx="7.5" cy="7.5" r="6.4"/></marker></defs>
+          <g class="rd-grid"><!-- REPEAT:radar.rings --><polygon points="{{points}}"/><!-- /REPEAT:radar.rings --><!-- REPEAT:radar.spokes --><line x1="100" y1="100" x2="{{x2}}" y2="{{y2}}"/><!-- /REPEAT:radar.spokes --></g>
+          <polygon class="rd-area" points="{{radar.points}}" marker-start="url(#rd-v)" marker-mid="url(#rd-v)" marker-end="url(#rd-v)"/>
+          <!-- REPEAT:radar.axes --><text class="rd-lbl" x="{{lx}}" y="{{ly}}" text-anchor="{{anchor}}">{{name}}</text><!-- /REPEAT:radar.axes -->
+        </svg>
+        <div class="rd-note">면 = 유형별 배점 · 고리 = 25%씩</div>
       </div>
-      <!-- /REPEAT:types -->
+    </div>
+    <!-- /SECTION:radar -->
+
+    <!-- SECTION:type-chart -->
+    <div class="box wide">
+      <div class="cap"><span class="t">많이 나온 유형 <span>· 상위 3</span></span><span class="src">배점 {{meta.total_points}}점 기준</span></div>
+      <div class="body">
+        <!-- REPEAT:types -->
+        <div class="bar-row" data-em="{{em}}">
+          <div class="bar-head"><span>{{name}}</span><span class="r">{{count}}문항 · {{points}}점</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:{{width}}%"></div></div>
+        </div>
+        <!-- /REPEAT:types -->
+        <div class="bar-note">{{overview.highlight}}<span class="lg">막대 = 배점 · 다른 색 = 문제가 된 갈래</span></div>
+      </div>
+      <div class="foot">
+        <div><div class="fl">가장 많이 나온 출처</div><div class="fv">{{chapters.0.name}}</div></div>
+        <div><div class="fl">그 배점</div><div class="fv">{{chapters.0.points}}점</div></div>
+      </div>
     </div>
     <!-- /SECTION:type-chart -->
   </div>
@@ -283,6 +439,7 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
       <span class="k-kind">{{kind}}</span>
     </div>
     <div class="k-excerpt">{{excerpt}}</div>
+    <div class="k-cap">{{no}}번 원문 발췌 — 회색 면 = 시험지 글 그대로 · 줄임표(…) = 학원이 줄인 자리</div>
     <!-- 아래 두 줄은 «한 줄로» 둔다. 줄바꿈을 넣으면 :empty 가 깨져 빈 테두리가 인쇄된다 -->
     <div class="k-cond"><!-- REPEAT:conditions --><div class="cond"><span class="cn">{{@n}}</span><span>{{value}}</span></div><!-- /REPEAT:conditions --></div>
     <div class="k-choices"><!-- REPEAT:choices --><span class="k-choice"><span class="cn">{{@n}}</span><span>{{value}}</span></span><!-- /REPEAT:choices --></div>
@@ -295,7 +452,7 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
   <!-- /REPEAT:killer -->
   <!-- /SECTION:killer -->
 
-  <!-- ═══════════ 이슈 문항 — 있을 때만. 비면 아래 총평이 그 자리를 쓴다 ═══════════
+  <!-- ═══════════ 이슈 문항 — 있을 때만. 비면 아래 마무리가 그 자리를 쓴다 ═══════════
        일부러 SECTION 으로 감싸지 않았다. issues 가 빈 목록이면 REPEAT 가 0번 돌아
        상자째 사라지므로, sections 에 «issues» 를 적지 않아도 켜고 끌 수 있다.
        (sections 에 적어도 되도록 빈 자리는 문서 끝에 따로 두었다) -->
@@ -316,7 +473,7 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
        하나도 안 켜지면 이 자리에 아무것도 남지 않는다 — 지금 조판 그대로다. -->
   <!-- SECTION:fill-plan -->
   <div class="fill">
-    <div class="cap">다음 시험까지 <span>· 주차별로 할 일</span></div>
+    <div class="cap"><span class="t">다음 시험까지 <span>· 주차별로 할 일</span></span><span class="src"></span></div>
     <!-- REPEAT:study_plan -->
     <div class="plan-row"><span class="pw">{{week}}</span><span class="pf">{{focus}}</span><span class="pt">{{todo}}</span></div>
     <!-- /REPEAT:study_plan -->
@@ -325,7 +482,7 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
 
   <!-- SECTION:fill-home -->
   <div class="fill">
-    <div class="cap">가정에서 도와주실 것</div>
+    <div class="cap"><span class="t">가정에서 도와주실 것</span><span class="src"></span></div>
     <ul class="home-list">
       <!-- REPEAT:parent_note --><li>{{value}}</li><!-- /REPEAT:parent_note -->
     </ul>
@@ -334,34 +491,40 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
 
   <!-- SECTION:fill-difficulty -->
   <div class="fill">
-    <div class="cap">난이도별 문항 <span>· 어디서 갈렸나</span></div>
+    <div class="cap"><span class="t">난이도별 문항 <span>· 어디서 갈렸나</span></span><span class="src">{{meta.total_items}}문항 기준</span></div>
     <!-- REPEAT:difficulty.detail -->
     <div class="dd-row"><span class="dd-l">{{label}}</span><span class="dd-c">{{count}}문항 {{points}}점</span><span class="dd-n">{{nos}}</span></div>
     <!-- /REPEAT:difficulty.detail -->
   </div>
   <!-- /SECTION:fill-difficulty -->
 
-  <!-- ═══════════ 왜 갈렸나 + 총평 + 다음 행동 ═══════════ -->
+  <!-- ═══════════ 마무리 — 왼쪽 결론 / 오른쪽 근거 + 다음 행동 ═══════════ -->
   <!-- SECTION:summary -->
   <div class="closing">
-    <div class="why">
-      <div class="cap">이번 시험이 갈린 곳</div>
-      <ul class="why-list">
-        <li>{{difficulty.discriminator}}</li>
-        <li>{{overview.highlight}}</li>
-      </ul>
-    </div>
     <div class="final">
-      <div class="quote">{{summary.quote}}</div>
-      <div class="desc">{{summary.desc}}</div>
-      <div class="next"><span class="nl">다음 행동</span><span class="nv">{{next_action}}</span></div>
+      <div class="sl">
+        <div class="cap"><span class="t">한 줄 결론</span><span class="src"></span></div>
+        <div class="sl-body">
+          <div class="quote">{{summary.quote}}</div>
+        </div>
+      </div>
+      <div class="sr">
+        <div class="cap"><span class="t">이번 시험이 갈린 곳 <span>· 근거</span></span><span class="src"></span></div>
+        <div class="sr-body">
+          <div class="desc">{{summary.desc}}</div>
+          <ul class="why-list">
+            <li>{{difficulty.discriminator}}</li>
+          </ul>
+          <div class="next"><span class="nl">다음 행동</span><span class="nv">{{next_action}}</span></div>
+        </div>
+      </div>
     </div>
   </div>
   <!-- /SECTION:summary -->
 
   <!-- ═══════════ 꼬리말 · 고지 ═══════════ -->
   <div class="ft">
-    <span class="pagemark">{{PAGE_NUM}} / {{TOTAL_PAGES}} 페이지</span>
+    <span class="pagemark"><b>{{PAGE_NUM}}</b> / {{TOTAL_PAGES}} 페이지</span>
     분석 · <strong>{{brand.academy}}</strong> &nbsp;|&nbsp; 출처 {{meta.school}} {{meta.term}} {{meta.subject}} 시험지 원본 ({{meta.total_items}}문항 {{meta.total_points}}점)<br>
     {{disclaimer}}
     <!-- INTERNAL -->

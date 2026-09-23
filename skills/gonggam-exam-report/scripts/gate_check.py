@@ -114,12 +114,15 @@ def check_html(g, path, data=None):
     # 요약본은 A4 한 장에 **번호 없는 블록**으로 짠다 (summary-spec.md § 7).
     # 그래서 「번호 붙은 섹션 제목」을 요구하는 아래 두 검사를 받지 못한다.
     # **건너뛰지 않는다** — 대신 요약본이 반드시 담아야 하는 블록을 잰다 (§ 2-1).
-    if "요약본" in name or SUMMARY_MARK in html:
+    is_summary = "요약본" in name or SUMMARY_MARK in html
+    if is_summary:
         check_summary_html(g, name, html)
     else:
         check_section_titles(g, name, html, data)
 
     check_page_marks(g, name, html)
+    # 지면 문법 — 강조·범례·레이다·결론 칸 (references/layout-grammar.md)
+    check_layout_grammar(g, name, html, data, is_summary)
 
     g.check("ReportKR" in html and "@font-face" in html, "%s · 동봉 폰트 삽입" % name,
             "폰트가 박히지 않았습니다")
@@ -286,6 +289,239 @@ def check_summary_html(g, name, html):
                 "줄이거나, 다른 문항을 고르세요" % (len(lines), chars, EXCERPT_LINES, EXCERPT_CHARS))
     else:
         g.check(not nk, "%s · 발췌 존재" % name, "대표 문항에 발췌(k-excerpt)가 없습니다")
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  D. 지면 문법 — references/layout-grammar.md 를 기계가 지키게
+#
+#  규격을 글로만 적어 두면 다음 회차에 조용히 풀린다. 여기서 재는 것은 넣은 값이 아니라
+#  **종이에 찍힌 것**이다 — 주석은 이미 걷어낸 뒤에 센다(strip_comments).
+#  안 걷으면 판형 주석의 «강조 카드도 같다: class="info-card key"» 같은 설명이 진짜
+#  요소로 세어진다 — 실제로 멀쩡한 영어 리포트가 «강조 카드 4개» 로 읽혔다.
+# ═══════════════════════════════════════════════════════════════════════
+
+# 범례 칸의 이름이 판형마다 다르다 — 상세본은 `cap`, 요약본의 발췌 범례는 `k-cap`.
+# `cap` 만 찾다가 멀쩡히 붙어 있는 요약본 범례를 «없다» 고 막았다.
+# 이름 하나를 고집하지 말고 «-cap 으로 끝나는 칸» 을 다 받는다.
+CAP_RE = re.compile(r'<div class="(?:[a-z0-9-]*-)?cap"[^>]*>(.*?)</div>', re.S)
+SEC_SPLIT = re.compile(r'<div class="sec[ "]')
+CARD_ANY = re.compile(r'class="(?:info-)?card[ "]')
+CARD_KEY = re.compile(r'class="(?:info-)?card[^"]*\bkey\b')
+BAR_ANY = re.compile(r'class="bar-row[ "]')
+BAR_EM = re.compile(r'class="bar-row[^"]*\bem\b|data-em="em"')
+STEPS_FLOW = re.compile(r'<ol class="steps flow"[^>]*>(.*?)</ol>', re.S)
+LI_EM = re.compile(r'<li[^>]*class="[^"]*\bem\b')
+EXCERPT_AT = re.compile(r'class="k-excerpt"')
+# «색을 쓴 자리» — 발췌 강조 span(.hl) 과 <mark>. "highlight" 는 안 걸린다(\b 경계)
+HILITE_AT = re.compile(r'<mark\b|class="[^"]*\bhl\b', re.I)
+# «→ 결론» 은 글자가 아니라 칸(.concl)이다. ★ 도 글자가 아니라 li.em 이다
+STEP_RAW = re.compile(r'→|->|★')
+
+
+def _plain(s):
+    return re.sub(r"\s+", " ", htmlmod.unescape(re.sub(r"<[^>]+>", " ", s))).strip()
+
+
+def _sec_label(sec, i):
+    m = re.search(r'class="section-title">([^<]{0,40})', sec)
+    return "«%s»" % _plain(m.group(1)) if m else "%d번째 구역" % i
+
+
+def _sections(html):
+    """섹션 하나씩. 흐름 조판이라 <div class="sec"> 가 섹션 경계다.
+
+    요약본에는 .sec 이 없다 — 한 장이 통째로 한 구역이다."""
+    parts = SEC_SPLIT.split(html)
+    return parts[1:] if len(parts) > 1 else [html]
+
+
+#                    <style>·<script> 통째로          | HTML 주석 통째로
+STYLE_RE = re.compile(r"<(style|script)\b.*?</\1>|<!--.*?-->", re.S | re.I)
+
+
+def _body_only(html):
+    """**<style>·<script> 를 걷어낸 본문.** 조판 검사는 반드시 이것을 본다.
+
+    안 걷으면 CSS 규칙 글자 자체가 본문으로 읽힌다 — `.bar-row.em .bar-fill{…}`
+    이라는 «선언» 을 «강조된 막대 한 줄» 로 세는 식이다. 실제로 그래서 멀쩡한
+    영어 요약본이 「강조 막대 2줄」로 막혔고, 범례 검사는 동봉 폰트의 base64
+    한가운데(265114번째 글자)를 «발췌 상자» 로 짚었다.
+
+    검사가 무엇을 세는지 모르면 통과도 차단도 믿을 수 없다.
+    """
+    return STYLE_RE.sub("", html)
+
+
+def check_emphasis_once(g, name, html):
+    """§0-2 · §11 — **강조는 한 곳만.** 넷 중 둘을 칠하면 둘 다 안 보인다.
+
+    세 가지를 한 번에 잰다 — 숫자 카드의 key(문서 하나에 하나),
+    막대의 em(**한 섹션에** 하나), 푸는 순서의 li.em(한 목록에 하나).
+    세는 단위가 셋마다 다르다. 막대를 문서 단위로 세면 «유형별» 과 «출제 범위별» 이
+    각각 하나씩 칠해진 멀쩡한 리포트가 «2개» 로 읽혀 막힌다.
+    """
+    html = _body_only(html)
+    secs = _sections(html)
+    lists = STEPS_FLOW.findall(html)
+    ncard, nbar = len(CARD_ANY.findall(html)), len(BAR_ANY.findall(html))
+
+    # 잴 것이 하나도 없으면 통과가 아니라 «못 쟀다» 고 말한다
+    if not (ncard or nbar or lists):
+        g.warn(True, "%s · 강조 잴 곳 없음" % name,
+               "숫자 카드도 막대도 푸는 순서도 없어 강조 규칙을 하나도 재지 못했습니다")
+        return
+
+    nkey = len(CARD_KEY.findall(html))
+    g.check(nkey <= 1, "%s · 강조 카드 하나" % name,
+            "숫자 카드 %d개 중 강조(key)가 %d개입니다 — 둘을 칠하면 둘 다 안 보입니다 "
+            "(layout-grammar.md §0-2 · §3)" % (ncard, nkey))
+
+    bad = []
+    for i, sec in enumerate(secs, 1):
+        n = len(BAR_EM.findall(sec))
+        if n > 1:
+            bad.append("%s 에 강조된 막대가 %d줄" % (_sec_label(sec, i), n))
+    g.check(not bad, "%s · 섹션마다 강조 막대 하나" % name,
+            "%s — 칠할 행은 데이터가 하나만 지목합니다 (§6 · exam.json 의 emphasis)"
+            % " / ".join(bad[:4]))
+
+    badl = []
+    for i, ol in enumerate(lists, 1):
+        n = len(LI_EM.findall(ol))
+        if n > 1:
+            badl.append("%d번째 «푸는 순서» 에 ★ 가 %d칸" % (i, n))
+    g.check(not badl, "%s · 목록마다 갈린 칸 하나" % name,
+            "%s — 실제로 갈린 칸은 하나입니다 (§5)" % " / ".join(badl[:4]))
+
+
+def _legend_of(html, pos, kind):
+    """그 자리에 따라붙는 11px 범례(.cap)의 글. 없거나 비었으면 빈 문자열.
+
+    바로 아래를 먼저 본다(상세본 §7 꼴). 없으면 바로 위를 본다 —
+    요약본은 .cap 을 상자 **머리띠**로 쓴다(template_summary · .box>.cap).
+    """
+    end = html.find("</div>", pos)
+    start = pos if end < 0 else end
+    fwd = 500 if kind == "발췌" else 800
+    m = CAP_RE.search(html[start:start + fwd])
+    if m and _plain(m.group(1)):
+        return _plain(m.group(1))
+    for c in reversed(CAP_RE.findall(html[max(0, pos - 800):pos])):
+        if _plain(c):
+            return _plain(c)
+    return ""
+
+
+def check_legend(g, name, html):
+    """§7 · §11 — **색을 쓰고 범례를 안 붙이지 않는다.**
+
+    발췌 상자와 하이라이트는 색·선으로 뜻을 말한다. 그 뜻을 적은 11px 한 줄이
+    없으면 빨간 표시가 무슨 뜻인지 아무도 모른다. 판형이 범례를 빼면 여기서 걸린다.
+    """
+    html = _body_only(html)
+    spots = [("발췌", m.start()) for m in EXCERPT_AT.finditer(html)]
+    spots += [("하이라이트", m.start()) for m in HILITE_AT.finditer(html)]
+    if not spots:
+        g.warn(True, "%s · 범례 잴 곳 없음" % name,
+               "발췌 상자도 하이라이트도 없어 범례 규칙을 재지 못했습니다")
+        return
+    bad = []
+    for kind, pos in spots:
+        if not _legend_of(html, pos, kind):
+            bad.append("%s(%d번째 글자 자리) 곁에 범례가 없거나 비었습니다" % (kind, pos))
+    g.check(not bad, "%s · 색을 썼으면 범례" % name,
+            "%s — 하이라이트·발췌에는 11px 범례(.cap)가 따라옵니다 "
+            "(layout-grammar.md §7 · §11). 잰 자리 %d곳 중 %d곳이 비었습니다"
+            % (" / ".join(bad[:4]), len(spots), len(bad)))
+
+
+def check_radar_markup(g, name, html, is_summary):
+    """§9-2 — **축이 셋 미만이면 레이다를 그리지 않는다.** 둘로는 삼각형도 안 된다.
+
+    판형은 `data-ok` 가 비면 상자를 숨긴다. 숨기는 것과 안 그리는 것은 다르다 —
+    테마가 display:none 을 한 줄 덮으면 빈 육각형이 그대로 인쇄된다. 그래서
+    «숨겼나» 가 아니라 «점을 찍었나» 를 잰다.
+    """
+    m = re.search(r'<div class="box radar"[^>]*data-ok="([^"]*)"', html)
+    if not m:
+        if is_summary:
+            g.warn(True, "%s · 레이다 잴 것 없음" % name,
+                   "요약본에 레이다 상자가 없습니다 (sections 에 radar 가 없으면 정상입니다) — "
+                   "데이터 쪽 축 수는 «데이터 · 레이다 축» 이 잽니다")
+        return
+    ok = m.group(1).strip()
+    rest = html[m.end():]
+    nxt = rest.find('<div class="box')
+    block = rest if nxt < 0 else rest[:nxt]
+    axes = len(re.findall(r'class="rd-lbl"', block))
+    pts = re.search(r'class="rd-area"[^>]*points="([^"]*)"', block)
+    drawn = bool(axes) or bool(pts and pts.group(1).strip())
+    if not ok:
+        g.check(not drawn, "%s · 레이다 축 3 미만이면 안 그린다" % name,
+                "radar.ok 가 비었는데 SVG 가 그려졌습니다(축 %d개 · 꼭짓점 %s) — "
+                "둘로는 삼각형도 안 됩니다 (§9-2)"
+                % (axes, "있음" if (pts and pts.group(1).strip()) else "없음"))
+    else:
+        g.check(axes >= 3, "%s · 레이다 축 3 이상" % name,
+                "radar.ok 가 켜졌는데 축이 %d개뿐입니다 — 셋부터 그립니다 (§9-2)" % axes)
+
+
+def check_steps_flow(g, name, html, data, is_summary):
+    """§5 — «→ 결론» 과 «★» 은 종이에 **글자로 찍히면 안 된다.**
+
+    화살표는 결론 칸(.concl)이 CSS 로 붙이고, ★ 는 갈린 칸(li.em)으로 바뀐다.
+    MD 에 적은 그대로 찍혔다면 바꾸는 자리(report_build.split_steps)를 안 거쳤거나
+    판형이 steps_flow 를 안 쓰는 것이다. **실제로 그렇게 인쇄됐었다.**
+
+    재는 곳을 «푸는 순서 목록 안» 으로 좁힌다. 종이 전체에서 → 를 찾으면
+    어법 선지의 «which→when» 과 교정표의 «goes→go» 가 전부 걸려
+    멀쩡한 영어 리포트를 막는다 — 거기서의 → 는 결론이 아니라 글자가 맞다.
+    """
+    lists = STEPS_FLOW.findall(html)
+    if not lists:
+        if not is_summary:
+            g.warn(True, "%s · 푸는 순서 잴 곳 없음" % name,
+                   "«푸는 순서» 목록(ol.steps.flow)이 하나도 없어 결론 칸 규칙을 재지 못했습니다")
+        return
+
+    raw = []
+    for i, ol in enumerate(lists, 1):
+        for li in re.findall(r"<li\b.*?</li>", ol, re.S):
+            t = _plain(li)
+            hit = sorted(set(STEP_RAW.findall(t)))
+            if hit:
+                raw.append("%d번째 목록 «%s» 에 %s" % (i, t[:22], "·".join(hit)))
+    g.check(not raw, "%s · 결론은 글자가 아니라 칸" % name,
+            "%s 가 글자로 찍혔습니다 — «→» 는 결론 칸(.concl)이 CSS 로 붙이고 "
+            "«★» 은 li.em 으로 바뀝니다 (layout-grammar.md §5)" % " / ".join(raw[:4]))
+
+    # 판형이 steps_flow 를 아예 안 쓰는 경우 — 데이터엔 있는데 종이엔 칸이 없다.
+    # 요약본은 다른 판형이니 재지 않는다(report.json 을 같이 받아도).
+    if data is None or is_summary:
+        return
+    want_c = want_e = 0
+    for k in data.get("killer") or []:
+        for s in k.get("steps_flow") or []:
+            if str(s.get("conclusion") or "").strip():
+                want_c += 1
+            if str(s.get("em") or "").strip():
+                want_e += 1
+    got_c = len(re.findall(r'class="concl"', html))
+    got_e = sum(len(LI_EM.findall(ol)) for ol in lists)
+    g.check(not (want_c and not got_c), "%s · 결론 칸을 쓰는 판형" % name,
+            "데이터에 «→ 결론» 이 %d개 있는데 종이에는 결론 칸(.concl)이 하나도 없습니다 — "
+            "판형이 steps_flow 를 안 쓰고 있습니다 (§5)" % want_c)
+    g.check(not (want_e and not got_e), "%s · 갈린 칸 표시" % name,
+            "데이터가 갈린 칸을 %d개 지목했는데 종이에는 li.em 이 하나도 없습니다 — "
+            "★ 가 조용히 사라졌습니다 (§5)" % want_e)
+
+
+def check_layout_grammar(g, name, html, data, is_summary):
+    """지면 문법 넷 — 강조·범례·레이다·결론 칸."""
+    check_emphasis_once(g, name, html)
+    check_legend(g, name, html)
+    check_radar_markup(g, name, html, is_summary)
+    check_steps_flow(g, name, html, data, is_summary)
 
 
 def check_pdf(g, path):
@@ -556,6 +792,44 @@ def check_pdf_layout(g, path):
                 clipped.append("p%d «%s» y=%.0f (상자 %.0f~%.0f)"
                                % (pno, s["text"][:16], s["bbox"][3], box.y0, box.y1))
                 break
+
+        # ── 칸이 짓눌렸나 (2026-09-23 신설)
+        #
+        # 처음엔 «가로로 넘쳤나» 를 쟀다. 그 검사는 죽어 있었다 — 일부러 긴
+        # meta.term 을 넣어 봤더니 x 는 570pt 그대로였다. flex 가 넘치는 대신
+        # **옆 칸을 짓눌러서** 버티기 때문이다. 머리띠 왼쪽이 한 글자 폭이 되어
+        # 「공 / 감 / 에 / 듀」 로 세로로 쪼개졌고 제목이 통째로 밀려났는데,
+        # 글자는 전부 PDF 에 남아 있어 «글이 살아남았나» 검사도 통과했다.
+        #
+        # 그래서 넘침이 아니라 **짓눌림**을 잰다. 한 글자짜리 줄이 세로로
+        # 줄줄이 쌓이는 것이 그 서명이다. 한글 세로쓰기를 하지 않는 한 이건
+        # 언제나 사고다.
+        # 짓눌린 글자는 **한 글자마다 블록이 따로** 나온다. 그래서 블록 안이
+        # 아니라 쪽 전체에서 모은 뒤 «같은 x 에 세로로 바짝 쌓였나» 로 가른다.
+        # 그냥 「한 글자짜리 줄」을 세면 난이도 배지(「상」·「중」·「하」)가 걸린다 —
+        # 배지도 한 글자에 같은 x 지만, 표 한 행씩 떨어져 있어 줄 간격이 멀다.
+        ones = []
+        for b in page.get_text("dict")["blocks"]:
+            for ln in b.get("lines", []):
+                t = "".join(s["text"] for s in ln["spans"]).strip()
+                x0, y0, x1, y1 = ln["bbox"]
+                # 한글 음절만 센다. 숫자·동그라미 번호를 같이 세면 선지 「①②③④」와
+                # 푸는 순서 「1 2 3 4」가 그대로 걸린다 — 실제로 멀쩡한 영어 리포트
+                # 5·6·7쪽이 그 때문에 막혔다. 짓눌림의 서명은 «낱말이 음절마다
+                # 쪼개지는 것» 이지 «번호가 세로로 놓이는 것» 이 아니다.
+                if len(t) == 1 and (x1 - x0) < 20 and "가" <= t <= "힣":
+                    ones.append((round(x0), y0, max(y1 - y0, 1.0)))
+        ones.sort()
+        squeezed, run = 0, 1 if ones else 0
+        for i in range(1, len(ones)):
+            px, py, ph = ones[i - 1]
+            x, y, h = ones[i]
+            run = run + 1 if (abs(x - px) <= 3 and (y - py) < max(ph, h) * 1.9) else 1
+            squeezed = max(squeezed, run)
+        if squeezed >= 4:
+            clipped.append("p%d — 칸이 짓눌렸습니다: 한 글자짜리 줄이 %d개 연달아 "
+                           "쌓였습니다(옆 칸이 너무 길어 이 칸을 밀어냈습니다)"
+                           % (pno, squeezed))
 
         # ── 제목만 있고 내용이 없는 장 / 맨 아래 홀로 남은 제목
         # 흐름 조판에서는 한 장에 섹션이 여럿 올 수 있다. 그래서 「제목 아래」를
@@ -1084,6 +1358,25 @@ def check_data(g, path):
 
     nobasis = [i.get("no") for i in items if not str(i.get("basis") or "").strip()]
     g.check(not nobasis, "데이터 · 유형 판정 근거", "basis 없는 문항: %s" % nobasis)
+
+    # §9-2 — 레이다는 축이 셋부터다. 둘로는 삼각형도 안 된다.
+    # 종이 쪽은 check_radar_markup 이 재고, 여기서는 빌더가 낸 값을 쟄다 —
+    # 요약본의 sections 에 radar 가 없으면 종이에는 상자가 아예 안 나온다.
+    rd = d.get("radar")
+    if isinstance(rd, dict):
+        axes = rd.get("axes") or []
+        ok = str(rd.get("ok") or "").strip()
+        drawn = bool(axes) or bool(str(rd.get("points") or "").strip())
+        if ok:
+            g.check(len(axes) >= 3, "데이터 · 레이다 축 3 이상",
+                    "radar.ok 가 켜졌는데 축이 %d개입니다 — 셋부터 그립니다 (§9-2)" % len(axes))
+        else:
+            g.check(not drawn, "데이터 · 레이다 축 3 미만이면 안 그린다",
+                    "radar.ok 가 비었는데 축 %d개·꼭짓점이 있습니다 — "
+                    "안 그릴 거면 좌표를 내지 않습니다 (§9-2)" % len(axes))
+    else:
+        g.warn(True, "데이터 · 레이다 쟴 것 없음",
+               "report.json 에 radar 가 없습니다 — 빌더가 펼지 않았습니다")
 
     low = [i.get("no") for i in items if i.get("confidence") == "low"]
     if low:

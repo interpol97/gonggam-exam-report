@@ -1,0 +1,114 @@
+/* nelt — NELT 리포트 톤 (2026-09-23 지정)
+   원장님이 주신 「NELT REPORT Summary」 한 장에서 색을 따오고,
+   꼴은 요즘 앱·블로그 카드 UI 로 다시 짰다 — 흰 카드 · 얇은 테두리 ·
+   아주 옅은 그림자 · 넉넉한 여백. 파스텔 면은 쓰지 않는다.
+
+   ── 색을 숫자로 정한 자리 (규격 Q3)
+   본문 #16202C / 회색 바탕      → 15.5:1
+   파랑 #1B5FAA / 회색 바탕      →  6.1:1   글자로 써도 된다
+   주황 #E8792B / 회색 바탕      →  2.7:1   [금지] 글자로 쓰지 않는다 — 면·막대 전용
+   주황 글자   #B65714           →  4.5:1   글자에 쓰는 주황은 이쪽이다
+   보조 글자   #677282           →  4.6:1   (#8D97A5 는 2.8:1 이라 떨어졌다)
+   흑백 변환 명도차 파랑 ↔ 주황  →  20%p    복사기를 거쳐도 두 색이 안 붙는다
+
+   주황이 둘인 것은 멋이 아니다. 큰 숫자와 막대는 눈에 띄어야 하고,
+   작은 글자는 읽혀야 한다. 한 값으로는 둘 다 못 한다. */
+
+:root{
+  --paper:#F4F6F9; --ink:#16202C; --muted:#677282; --line:#E6EAF0;
+  --primary:#1B5FAA;            /* NELT 파랑 — 제목·표 머리글·막대 */
+  --primary-pale:#EAF1FA;
+  --accent:#B65714;             /* 글자에 쓰는 주황 */
+  --accent-fill:#E8792B;        /* 면·막대에만 쓰는 주황 */
+  --accent-pale:#FDF0E5;
+  --gray-pale:#FAFBFD; --zebra:#FBFCFE;
+  --cover-bg:linear-gradient(152deg,#164E8C,#2272C4);
+  --cover-fg:#FFFFFF;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(22,32,44,.05), 0 6px 18px rgba(22,32,44,.045);
+}
+
+/* ── 앱 카드 꼴 — 흰 면 · 얇은 테두리 · 옅은 그림자 ───────── */
+.sec, .info-card, .card, .diff-box, .box, .problem, .issue, .callout{
+  background:#fff; border:1px solid var(--line);
+  border-radius:var(--radius); box-shadow:var(--shadow);
+}
+.sec{padding:22px 24px}
+
+/* ── 머리 띠 ─────────────────────────────────────────────── */
+.cover{border-bottom:5px solid var(--accent-fill)}
+.hd, .hdr{border-bottom:3px solid var(--accent-fill)}
+.hdr{background:var(--primary); color:#fff}
+.hdr .kick{color:rgba(255,255,255,.74)}
+.hdr .meta{color:rgba(255,255,255,.8)}
+.hdr .meta b{color:#fff}
+
+/* ── 섹션 제목 — 세로 막대 대신 «옅은 파랑 라벨 띠» (NELT 의 꼴) ── */
+.section-title{
+  border-bottom:1px solid var(--line);
+  padding-left:13px; position:relative; letter-spacing:-.015em;
+}
+.section-title::before{
+  content:""; position:absolute; left:0; top:3px; bottom:9px;
+  width:4px; border-radius:2px; background:var(--primary);
+}
+.sec-src, .src, .page-mark{color:var(--muted)}
+
+/* ── 표 — 파랑 머리글, 줄은 아주 옅게 ───────────────────── */
+thead th, th{background:var(--primary); color:#fff; letter-spacing:-.01em}
+td{border-bottom:1px solid var(--line)}
+tr:nth-child(even) td{background:var(--zebra)}
+
+/* ── 숫자 카드 — 값은 파랑, 「말」 카드 하나만 주황 ───────── */
+.info-card .value, .info-card .value .num, .card .v, .nv, .diff-box .n{color:var(--primary)}
+.info-card .unit{color:var(--muted)}
+.info-card.key, .card[data-key="1"], .card[data-unit=""]{
+  background:var(--accent-pale); border-color:#F6D9BF;
+}
+.info-card.key .value, .info-card.key .value .num, .info-card.key .unit{color:var(--accent)}
+.info-card.key .label{color:#9A5E2A}
+
+/* ── 막대 — 파랑 트랙 위 파랑, 지목한 줄만 주황 ────────────
+   색은 «면» 이므로 진한 주황(#E8792B)을 쓴다. 옆의 값 글자는
+   읽어야 하므로 글자용 주황(#B65714)으로 따로 준다. */
+.bar-track{background:#EDF1F6}
+.bar-fill{background:var(--primary); border-radius:999px}
+.bar-row.em .bar-fill{background:var(--accent-fill)}
+.bar-row.em .bar-head, .bar-row.em .bar-label, .bar-row.em .bar-value{
+  color:var(--accent); font-weight:800;
+}
+.bar-note{color:var(--muted)}
+
+/* ── 핵심·이슈 ──────────────────────────────────────────── */
+.callout{background:var(--accent-pale); border-color:#F6D9BF; border-left:4px solid var(--accent-fill)}
+.issue{border-left:5px solid var(--accent-fill)}
+.i-kind, .k-kind{background:var(--accent-pale); color:var(--accent)}
+.wrongs{background:var(--accent-pale); border:1px solid #F6D9BF}
+.wrongs .bt, .wrong-label{color:var(--accent)}
+
+/* ── 논리 3단 — 갈린 칸 하나만 주황 ─────────────────────── */
+.steps3 .st, .steps.flow > li{background:#fff; border:1px solid var(--line); border-radius:12px}
+.steps3 .st.em, .steps.flow > li.em{background:var(--accent-pale); border:2px solid var(--accent-fill)}
+.steps3 .st .no, .steps.flow > li .no{background:var(--primary); color:#fff}
+.steps3 .st.em .no, .steps.flow > li.em .no{background:var(--accent-fill)}
+.steps3 .st .concl, .steps.flow > li .concl{color:var(--accent); font-weight:700}
+
+/* ── 마무리 — 파랑 면, 흰 글씨 ──────────────────────────────
+   ⚠ 면을 어둡게 하면 그 **안의 글자색도 전부** 다시 잡아야 한다.
+   네이비 테마에서 「다음 행동」 줄이 같은 색이라 통째로 사라진 적이 있다. */
+.final{background:var(--primary); color:#fff; border-color:var(--primary)}
+.final .quote{color:#fff}
+.final .desc{color:#D9E5F4}
+.final .nl{background:rgba(255,255,255,.16); color:#fff; border-color:rgba(255,255,255,.36)}
+.final .nv, .final .next{color:#fff; font-weight:800}
+
+/* ── 칩·태그 ───────────────────────────────────────────── */
+.chip, .k-tag{background:var(--primary-pale); color:var(--primary); border:1px solid #D4E2F4}
+
+/* ── 인쇄 — 그림자는 토너만 먹는다. 선으로 버틴다 ────────── */
+@media print{
+  .sec, .info-card, .card, .diff-box, .box, .problem, .issue, .callout{
+    box-shadow:none;
+  }
+  .info-card, .card, .diff-box, .box{background:#fff}
+}

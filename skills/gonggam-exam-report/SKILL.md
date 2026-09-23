@@ -10,12 +10,15 @@ description: 학교 기출 시험지(PDF·사진·스캔)를 받아 ① 문제·
 
 | # | 파일 | 무엇 |
 |---|---|---|
-| 1 | `…_문제.md` | 문항 원문 (표·도표·보기 포함) |
-| 2 | `…_정답해설.md` | 정답 + 해설 + 오답 근거 |
-| 3 | `…_분석_유형별.md` | 유형 분포 · 유형별 정오 경향 |
-| 4 | `…_분석_출제별.md` | 출제 단원·범위·교재 출처 매핑 |
-| 5 | `…_분석_난이도별.md` | 난이도 분포 · 변별 문항 · 킬러문항 |
-| 6 | `…_리포트.html` + `.pdf` | 학원 브랜딩 A4 리포트 |
+| 1 | `…_기출문제_….md` | 문항 원문 (표·도표·보기 포함) |
+| 2 | `…_기출정답해설_….md` | 정답 + 해설 + 오답 근거 |
+| 3 | `…_기출분석_…_유형별.md` | 유형 분포 · 유형별 정오 경향 |
+| 4 | `…_기출분석_…_출제별.md` | 출제 단원·범위·교재 출처 매핑 |
+| 5 | `…_기출분석_…_난이도별.md` | 난이도 분포 · 변별 문항 · 킬러문항 |
+| 6 | `…_기출분석리포트_….html` + `.pdf` | 학원 브랜딩 A4 리포트 |
+
+빌더는 **이름에 `기출문제` · `기출정답해설` 이 든 .md 를 낱말로 찾는다.** 그 낱말을 빼면
+찾지 못하고, 같은 낱말을 가진 파일이 둘이면 막는다 (§ 8).
 
 > **공용 규격 상속** — 파일명·2종 원칙은 `gonggam-material-studio/reference/output-conventions.md`,
 > 폰트·판형은 같은 곳 `print-spec.md` 를 따른다. 충돌하면 그쪽이 우선한다.
@@ -31,6 +34,7 @@ description: 학교 기출 시험지(PDF·사진·스캔)를 받아 ① 문제·
 | 시험지 판독 (사진·스캔 포함) | **Opus 비전** | 외부 OCR 엔진보다 표·수식·밑줄 문맥을 잘 읽는다 |
 | 유형 분류 · 난이도 판정 | **Opus** | 판단이다. 규칙표로 안 떨어진다 |
 | **킬러문항 선별** | **기계** | 난이도 `상` 중 배점순 · 동점이면 번호순 · 최대 5. 규칙이라 매번 같아야 한다 |
+| 그 규칙을 뒤집기 | **사람 — 파일에 남겨서** | `exam.json` 의 `killer_override` 로만. `meta` 의 `flags` 로 고르는 길은 막힌다 — 아무 데도 안 남는다 |
 | **이슈문항 판정** | **사람(강사)** | 복수정답·조건누락은 기계도 Opus 도 못 잡는다. 가르친 사람만 안다 |
 | 번호 매기기 · 총페이지 · 조판 · 치환 | **렌더러(`render_report.py`)** | 기계가 셀 일을 사람이 세면 틀린다 |
 | 발행 가부 | **게이트(`gate_check.py`)** | 사람이 「됐다」고 말하는 걸 믿지 않는다 |
@@ -137,12 +141,18 @@ Stage 5  게이트 + 학원 광고 검수  → 통과해야 전달
 {
   "meta": {"school":"명지고","grade":"H1","term":"2026-1학기 중간","subject":"영어",
            "total_items":25,"total_points":100},
+  "emphasis": {"types":"어법","chapters":"시험범위 밖 지문"},
   "items":[
-    {"no":1,"type":"객관식","points":3,"stem":"…","choices":["…"],
-     "answer":"3","source":"교과서 2과","confidence":"high"}
+    {"no":1,"type":"빈칸추론","points":3.4,"difficulty":"중상","source":"교과서 2과",
+     "answer":"3","basis":"binkan:원칙2 후반 위치","confidence":"high"}
   ]
 }
 ```
+
+문항의 **여덟 칸이 전부 의무**다 — `no` `type` `points` `difficulty` `source` `answer`
+`basis` `confidence`. 하나라도 비면 빌드가 막힌다. 발문과 선지는 여기 적지 않는다 —
+`기출문제.md` 에서 읽는다. **배점은 정수가 아니다**(3.4 · 2.8). 칸의 정본은
+`references/report-schema.md`.
 
 **`confidence` 는 의무 필드다.** 글자가 뭉개졌거나 잘렸거나 그림이 필요한데 안 보이면
 `"low"` 로 적고 `"note"` 에 무엇이 안 보이는지 쓴다.
@@ -192,6 +202,11 @@ Stage 5  게이트 + 학원 광고 검수  → 통과해야 전달
 
 난이도는 **상·중상·중·중하·하 5단**으로 통일한다. 과목이 달라도 리포트 표는 같은 칸을 쓴다.
 
+**과목이 바뀌면 영어에서 되던 것이 깨진다.** 두 자리가 실제로 깨졌다 —
+유형 이름으로만 하던 **서술형 판정**(수학 「문제해결」·국어 「문법」에는 그 낱말이 없다)과,
+`ⓐ~ⓩ` 로만 읽던 **`<보기>` 기호**(국어는 `ㄱ·ㄴ·ㄷ·ㄹ` 이다). 둘 다 고쳤고 까닭은
+`references/subject-axes.md` § 0-1 · § 0-2 에 있다. **새 과목을 붙일 때 먼저 읽는다.**
+
 ---
 
 ## 5. Stage 3 — MD 5종
@@ -225,8 +240,16 @@ built: 2026-09-20
 ### 6-1. 한 줄로 끝난다
 
 ```bash
-python scripts/render_report.py report.json out/
+python scripts/report_build.py exam.json <md폴더> out/report.json            # 상세본
+python scripts/report_build.py exam.json <md폴더> out/summary.json --summary # 요약본
+python scripts/render_report.py out/report.json out/                        # 배포본
+python scripts/render_report.py out/summary.json out/ --summary             # 요약본 판형
+python scripts/render_report.py out/report.json out/ --internal             # 내부본
 ```
+
+**`report.json` 을 손으로 쓰지 않는다.** `exam.json` + MD 2종을 `report_build.py` 가
+읽어 짓는다 (`references/md-contract.md`). 렌더러에 `--summary` 를 주면서 상세본으로
+지은 json 을 넘기지 않는다 — 요약본은 자르는 일까지 빌더가 한다.
 
 렌더러가 하는 일 — Claude 가 하지 않는 일이다:
 
@@ -238,16 +261,24 @@ python scripts/render_report.py report.json out/
 
 ### 6-2. 디자인 버전
 
-`assets/themes/` 안의 css 를 갈아끼운다. 템플릿은 하나, 테마는 여럿이다.
+`assets/themes/` 안의 css 를 갈아끼운다. **판형은 둘, 테마는 여럿이다** —
+상세본 `assets/template.html` 과 요약본 `assets/template_summary.html`.
+`--summary` 가 어느 쪽을 쓸지 고른다. 요약본 규격은 `references/summary-spec.md` 가 정본이다.
+
+테마는 **폴더가 정본**이다. `python scripts/render_report.py --list-themes` 가 세어서 말한다.
+지금 있는 것 여섯 —
 
 | 테마 | 성격 | 언제 |
 |---|---|---|
 | `clean` | 흰 바탕 · 남색 | 기본. 학부모 배포 |
 | `gonggam` | 공감 민트·에메랄드 | 공감에듀테크 자체 발행 |
+| `gonggam-navy` | 네이비 + 벽돌빨강 | 원장님 「학생관리 보고서」 톤 |
 | `mono` | 무채색 | 흑백 복사 전제 (§ 학원 문서는 복사기를 거친다) |
+| `nelt` | 파랑 · 주황 · 흰 카드 | 원장님 「NELT REPORT Summary」 톤 |
 | `warm` | 아이보리 · 브라운 | 초등·중등 학부모 |
 
-새 학원 브랜드는 테마 파일 하나를 더 만드는 것으로 끝난다. **템플릿은 건드리지 않는다.**
+새 학원 브랜드는 테마 파일 하나를 더 만드는 것으로 끝난다.
+**학원이 늘어도 판형은 안 늘린다.**
 
 ### 6-3. PDF 변환
 
@@ -288,8 +319,12 @@ python scripts/render_pdf.py out/리포트.html out/리포트.pdf
 ## 7. Stage 5 — 게이트 (통과 못 하면 전달하지 않는다)
 
 ```bash
-python scripts/gate_check.py out/
+python scripts/gate_check.py out/ report.json --exam exam.json --md <md폴더>
 ```
+
+**`--exam` 을 빼지 않는다.** 빼면 게이트가 문항표의 «보여 주는 값»(서술형)을 MD 의
+원값(본문참조)과 대조해 엉뚱하게 막는다. 대조의 기준은 언제나 `exam.json` 이다
+(`references/md-contract.md` § 8). 검사 목록의 정본은 `references/gates.md`.
 
 | 검사 | 실패 조건 |
 |---|---|
@@ -369,7 +404,11 @@ python scripts/gate_check.py out/
 | `references/subject-axes.md` | 과목별 분석축 — Stage 2 시작할 때 |
 | `references/figures.md` | 그림 세 층 · 입력 우선순위(HWP 우선) — 수학·과학·사회 |
 | `references/figure-routing.md` | **그림 경로 규격** — 다시 그릴지 원본을 쓸지. AI 가 판단하지 않는다 |
+| `references/md-contract.md` | **MD 기계판독 계약 정본** — 제목 줄·주석·네 칸·`★`·`<보기>`. Stage 3~4 의 중심 |
 | `references/report-schema.md` | `report.json` 스키마 정본 — Stage 4 |
+| `references/summary-spec.md` | **요약본 규격 정본** — A4 한 장·채움 블록 실측 높이 |
+| `references/gates.md` | 게이트 검사 목록 정본 — Stage 5 |
+| `references/layout-grammar.md` | **지면 문법 정본** — 무엇을 어디에 놓는가. 원장님 보고서 두 장에서 뽑았다. 판형을 고칠 때 먼저 읽는다 |
 | `references/md-outputs.md` | MD 5종 규격 — Stage 3 |
 | `references/ocr-intake.md` | 사진·스캔 판독 규약 — Stage 1 |
 

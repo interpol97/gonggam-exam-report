@@ -1,9 +1,124 @@
-/* gonggam — 공감에듀테크 민트·에메랄드. 자체 발행용 */
+/* gonggam - 공감에듀테크 자체 발행용. 에메랄드(주색) + 민트(강조색).
+   2026-09-23 새 지면 문법의 부품(머리띠 · 강조 카드 · 지목 막대 · 논리 3단 ·
+   해석/범례/출처 · 레이다)에 맞춰 정비했다.
+
+   브랜드 두 색이 둘 다 초록 계열이라 «같은 색 두 번» 이 되기 쉽다.
+   그래서 주색은 초록 쪽(에메랄드)으로 내리고 강조색은 청록 쪽(민트)으로 밀었다.
+   색상이 갈리고 명도도 갈려서 색으로도, 흑백 복사로도 두 색이 안 붙는다.
+
+   -- 색을 숫자로 정한 자리 (규격 Q3. 바탕은 섹션 면 #FFFFFF 기준) --
+   본문   #0E1F1C / 흰 바탕      17.05:1
+   보조   #63727E / 흰 바탕       4.95:1   (종이색 #F1F6F4 위에서도 4.54:1)
+   에메랄드 #0A7A4B / 흰 바탕      5.39:1   글자로 써도 된다. 흰 글자를 얹어도 5.39:1
+   민트   #14C4B0 / 흰 바탕       2.20:1   [금지] 글자로 쓰지 않는다. 면·막대 전용
+   민트글자 #07767E / 흰 바탕      5.38:1   글자에 쓰는 민트는 이쪽이다
+                    / 강조 면      4.81:1   (강조 면 #DFF7F4)
+   흑백 변환 명도(Rec.601) 에메랄드 32.6% 대 민트 55.3% = 22.7%p 차 (20%p 넘음)
+
+   -- dataviz validate_palette.js (막대 두 색 "#0A7A4B,#14C4B0", surface #FFFFFF) --
+     [PASS] Lightness band      all 2 inside L 0.43-0.77
+     [PASS] Chroma floor        all 2 >= 0.1
+     [PASS] CVD separation      worst adjacent dE 22.8 (deutan) · tritan 23.6
+     [PASS] Normal-vision floor worst adjacent dE 23.2 (normal)
+     [WARN] Contrast vs surface below 3:1 - relief required: [["#14C4B0",2.2]]
+     ALL CHECKS PASS
+   WARN 은 밝은 민트 막대 하나에 붙는다. 검사기가 요구하는 relief 는
+   «보이는 라벨 또는 표» 인데, 우리 막대는 트랙 «밖» 오른쪽에 값 글자를 늘 달고
+   (layout-grammar §6) 그 글자를 글자용 민트로 쓰므로 면이 옅어도 값은 읽힌다.
+   면 자체를 어둡게 내리면 주색과의 흑백 명도차가 20%p 아래로 떨어진다 -
+   #0FAE9C 로 내려 보면 16.2%p 다. 그래서 면은 밝게 두고 라벨로 받친다. */
+
 :root{
-  --paper:#F1F6F4; --ink:#0E1F1C; --muted:#6B7A86; --line:#E3E9E7;
-  --primary:#0A7A4B; --primary-pale:#E3F5EC; --accent:#12A96A; --accent-pale:#E8F8F0;
+  --paper:#F1F6F4; --ink:#0E1F1C; --muted:#63727E; --line:#E3E9E7;
+  --primary:#0A7A4B;            /* 에메랄드 - 제목·표 머리글·막대 */
+  --primary-pale:#E3F5EC;
+  --accent:#07767E;             /* 글자에 쓰는 민트 */
+  --accent-fill:#14C4B0;        /* 면·막대에만 쓰는 민트 */
+  --accent-pale:#DFF7F4;
   --gray-pale:#F3F6F5; --zebra:#FAFCFB;
   --cover-bg:linear-gradient(140deg,#0C1B18,#123A2C); --cover-fg:#FFFFFF;
 }
-.cover .brand{color:#34E3C4}
-.cover h1 .highlight{color:#34E3C4}
+
+/* 표지는 어두운 면이다. --accent 가 «글자용 짙은 민트» 로 내려왔으므로
+   표지 위에서는 안 보인다. 표지에만 브랜드 밝은 민트(#34E3C4, 표지 면 위 7.76:1). */
+.cover .brand, .cover-brand-text, .cover h1 .highlight{color:#34E3C4}
+
+/* -- 머리띠 - 2쪽부터 반복되는 띠 (layout-grammar §1) ------------------ */
+.hdr{background:var(--primary); color:#fff; border-bottom:4px solid var(--accent-fill)}
+.hdr .kick{color:rgba(255,255,255,.76)}
+.hdr .meta{color:rgba(255,255,255,.84)}
+.hdr .meta b{color:#fff}
+.cover{border-bottom:5px solid var(--accent-fill)}
+.hd{border-bottom:3px solid var(--accent-fill)}          /* 요약본 머리글 */
+
+/* -- 섹션 제목 앞 세로 막대 (§2) -------------------------------------- */
+.section-title{padding-left:13px; position:relative; letter-spacing:-.015em}
+.section-title::before{
+  content:""; position:absolute; left:0; top:3px; bottom:9px;
+  width:4px; border-radius:2px; background:var(--primary);
+}
+
+/* -- 해석 한 줄 · 범례 · 출처는 흐린 글자 (§6·§7·§2) ------------------- */
+.bar-note, .sec .cap, .cap .t span, .sec-src, .src, .problem .src, .rd-note{color:var(--muted)}
+/* .cap 를 통째로 흐리게 하지 않는다. 요약본 판형에서 .cap 은 상자 «제목 띠» 라
+   통째로 회색을 먹이면 제목이 흐려진다. 리포트 판형의 범례 캡션(.sec 안)과
+   요약본 캡션의 보조 글자(.cap .t span)만 흐리게 한다. */
+
+/* -- 표 ---------------------------------------------------------------- */
+thead th, th{background:var(--primary); color:#fff; letter-spacing:-.01em}
+td{border-bottom:1px solid var(--line)}
+
+/* -- 숫자 카드 - 넷 중 하나만 강조 (§3) --------------------------------
+   면을 옅은 민트로 깔았으므로 그 «안» 의 글자를 전부 다시 잡는다 - 값·단위·라벨 셋. */
+.info-card{background:#fff; border:1px solid var(--line)}
+.info-card .value, .info-card .value .num, .card .v, .nv, .diff-box .n{color:var(--primary)}
+.info-card .unit, .info-card .value .unit{color:var(--muted)}
+.info-card.key{background:var(--accent-pale); border:1.5px solid var(--accent)}
+.info-card.key .value, .info-card.key .value .num,
+.info-card.key .value .unit, .info-card.key .unit{color:var(--accent)}
+.info-card.key .label{color:#0B6068}
+
+/* -- 가로 막대 - 지목한 한 줄만 강조 (§6) ------------------------------
+   «1위 자동 강조» 를 하지 않는다. 칠할 줄은 데이터가 em 으로 지목한다. */
+.bar-fill{background:var(--primary)}
+.bar-row.em .bar-fill, .bar-row[data-em="em"] .bar-fill{background:var(--accent-fill)}
+.bar-row.em .bar-label, .bar-row.em .bar-value, .bar-row.em .bar-head,
+.bar-row[data-em="em"] .bar-head, .bar-row[data-em="em"] .bar-label{
+  color:var(--accent); font-weight:800;
+}
+
+/* -- 논리 3단 - 갈린 칸 하나만 강조 (§5) -------------------------------
+   번호 배지는 흰 글자를 이고 있다. 면용 민트(2.20:1) 를 쓰면 숫자가 사라진다. */
+.steps li::before, .steps.flow > li .no, .steps3 .st .no{background:var(--primary); color:#fff}
+.steps.flow > li, .steps3 .st{background:#fff; border:1px solid var(--line)}
+.steps.flow > li.em, .steps3 .st.em{background:var(--accent-pale); border:2px solid var(--accent)}
+.steps.flow > li.em::before, .steps3 .st.em .no{background:var(--accent); color:#fff}
+.steps.flow > li .concl, .steps3 .st .concl{color:var(--accent); font-weight:700}
+
+/* -- 핵심·이슈·오답 근거 ------------------------------------------------ */
+.callout{background:var(--accent-pale); border-left:4px solid var(--accent)}
+.i-kind, .k-kind{background:var(--accent-pale); color:var(--accent)}
+.wrongs{background:var(--accent-pale); border:1px solid #BEE9E4}
+.wrongs .bt, .wrong-label{color:var(--accent)}
+.block.wrong .bt{color:var(--accent)}
+.chip, .k-tag{background:var(--primary-pale); color:var(--primary); border:1px solid #C8E7D8}
+
+/* -- 레이다 (§9-1 가운데 그래프 자리) -----------------------------------
+   선은 진하게 주색으로, 면은 같은 색을 낮은 불투명도로, 고리·살은 아주 흐리게.
+   .radar-* 가 새 이름, .rd-* 는 요약본 판형이 쓰던 옛 이름이다. 둘 다 받는다. */
+.radar-area, .rd-area{fill:var(--primary); fill-opacity:.18; stroke:var(--primary);
+  stroke-width:2.4; stroke-linejoin:round; vector-effect:non-scaling-stroke}
+.radar-line{fill:none; stroke:var(--primary); stroke-width:2.4;
+  stroke-linejoin:round; vector-effect:non-scaling-stroke}
+.radar-ring, .radar-spoke, .rd-grid{fill:none; stroke:var(--line); stroke-width:1.2}
+.radar-dot, .rd-dot{fill:var(--primary)}
+.radar-axis, .rd-lbl{fill:var(--muted); font-weight:700}
+
+/* -- 인쇄 - 그림자는 토너만 먹는다. 선으로 버틴다 ---------------------- */
+@media print{
+  .sec, .info-card, .card, .diff-box, .box, .problem, .issue, .callout, .killer, .final{
+    box-shadow:none;
+  }
+  .info-card, .card, .diff-box, .box{background:#fff}
+  .info-card.key{background:var(--accent-pale)}
+}

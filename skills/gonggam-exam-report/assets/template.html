@@ -9,6 +9,15 @@
   [금지] 한 장에 몇 줄이 들어가는지 **여기서도 렌더러에서도 추측하지 않는다.**
      섹션은 그냥 흐른다. 잘리면 안 되는 것만 CSS 로 묶어 둔다(§불가분 단위).
      쪽번호는 실제 PDF 를 재서 렌더러가 박는다.
+
+  지면 문법 정본: references/layout-grammar.md — 아래 § 번호는 그 문서를 가리킨다.
+
+  [아직 안 켜진 자리] 꼴은 다 있는데 **데이터가 없어 비어 있는** 칸들이다.
+     지시자에 «만약» 이 없어서(SECTION 과 REPEAT 뿐) 없는 키를 적으면 렌더가 막힌다.
+     그래서 여기서는 class 만 세워 두고, 값이 들어오는 날 한 줄씩 켠다.
+       .sec-src                     섹션마다의 출처 한 줄
+     켜진 것 — 빌더가 모든 칸을 채워 주므로 한 칸이라도 빼면 렌더가 막힌다:
+       .value .num / .value .unit · .info-card.key · .bar-row.em · .bar-note · .problem .src
 -->
 <html lang="ko">
 <head>
@@ -18,6 +27,19 @@
 <title>{{meta.school}} {{meta.term}} {{meta.subject}} 분석 리포트</title>
 <style>
 {{FONT_CSS}}
+/* ── 활자 층위 · 여백 자 ────────────────────────────────────────────
+   한 자로 재야 층위가 생긴다. 이 판형이 쓰는 값은 이게 전부다.
+
+   활자  1차 섹션 제목 20/800  ·  2차 소제목 14/800  ·  카드 제목 15/800
+         본문 13.5/400        ·  표·카드 속 글 12.5   ·  상자 라벨 11.5/800 자간 .045em
+         캡션·출처 11          ·  큰 숫자 46/900
+     상자 라벨을 본문보다 **작게** 두고 자간으로 벌린다. 같은 크기로 굵기만 주면
+     실눈으로 봤을 때 «굵은 첫 줄» 로 읽히지 라벨로 읽히지 않는다.
+
+   여백  4 · 6 · 9 · 14 · 20 · 26 (px) 여섯 칸만 쓴다.
+     규칙은 하나다 — 붙일 것은 바싹, 나눌 것은 넉넉히. 한 값을 되풀이해 쓰면
+     전부 같은 무게가 된다. 카드 «안» 은 8, 카드 «사이» 는 14 로 갑절 가까이 벌린다.
+     제목 위 여백은 아래 여백보다 크다. */
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'ReportKR',sans-serif;line-height:1.6;background:var(--paper);color:var(--ink);
   padding:20px 12px;-webkit-font-smoothing:antialiased}
@@ -36,105 +58,278 @@ body{font-family:'ReportKR',sans-serif;line-height:1.6;background:var(--paper);c
 .cover .tags{margin-top:26px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .cover .tag{border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:5px 14px;font-size:13px}
 
+/* §1 머리띠 — 표지가 아니라 «띠» 다 ─────────────────────────────────
+   표지는 학부모가 받는 첫인상이라 가운데 정렬 상자 그대로 둔다. 그 **다음 장부터**
+   이 띠가 출처를 지고 간다 — 낱장으로 흩어져도 누구 것인지 알아야 한다.
+   왼쪽: kicker(작게·자간 넓게·흐리게) → 제목(가장 큼) → 부제는 제목 «옆에» 인라인으로.
+   오른쪽: 우측정렬 메타, 첫 줄만 굵고 나머지는 흐리다. 띠 아래 강조색 가는 줄.
+   쪽마다 되풀이하는 것은 렌더러 몫이라, 여기서는 표지 바로 뒤에 한 번만 놓는다. */
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;
+  background:var(--primary);color:#fff;border-bottom:4px solid var(--accent);
+  border-radius:12px;padding:20px 24px 16px;margin-bottom:20px}
+.hdr .kick{font-size:11px;letter-spacing:.18em;opacity:.72;margin-bottom:7px}
+.hdr h2{font-size:26px;font-weight:800;letter-spacing:-.025em;line-height:1.2}
+.hdr h2 small{font-size:15px;font-weight:500;opacity:.82;margin-left:9px}
+.hdr .meta{text-align:right;font-size:12px;line-height:1.62;opacity:.78;white-space:nowrap}
+.hdr .meta b{display:block;font-size:14px;opacity:1;margin-bottom:3px}
+
 /* 섹션 = 내용 한 덩어리. «인쇄 한 장» 이 아니다 — 길면 다음 장으로 자연히 흘러간다 */
 .sec{background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.07);
   padding:26px 30px 22px;margin-bottom:20px}
-.sec-head{position:relative;margin-bottom:12px;padding-bottom:9px;border-bottom:2px solid var(--primary-pale)}
-.section-title{font-size:19px;font-weight:800;color:var(--primary);padding-right:96px}
+.sec-head{position:relative;margin-bottom:11px;padding-bottom:9px;border-bottom:2px solid var(--primary-pale)}
+/* ⚠ 여는 태그 바로 뒤가 «N. » 이어야 한다 — gate_check.py 가 그 꼴로 섹션을 센다.
+   class 뒤에 다른 속성을 끼우거나 안에 태그를 넣지 않는다. */
+/* ⚠ 줄간을 좁히지 않는다. 1.25 로 줄였더니 장 맨 위에 선 제목의 글자 상자가
+   인쇄 상자 위로 삐져나가 게이트의 «내용 잘림» 에 걸렸다(실측 y=24 < 상자 32).
+   한글 글자 상자는 em 보다 크다 — 그 여유를 줄간이 먹여 준다. */
+.section-title{font-size:20px;font-weight:800;color:var(--primary);padding-right:96px;
+  letter-spacing:-.02em}
 /* 쪽번호는 흐름 밖(absolute)에 둔다 — 자리표시자 «00» 이 실제 숫자로 바뀌어도
    본문이 단 1px 도 밀리지 않는다. 그래서 1패스와 2패스의 조판이 같다 */
+/* ⚠ 이 칸의 «N / M 페이지» 는 **글자 그대로** 두 검사기가 읽는다. 태그로 가르지 않는다.
+     gate_check.py SEC_MARK  : 여는 태그 바로 뒤가 숫자와 «/» 여야 「몇 번 섹션이 몇 쪽」을 잰다
+     gates/negative.py stress: r"/ (\d+) 페이지" 로 표기 쪽수를 읽어 실제 쪽수와 맞춘다
+   규격 §10 은 「현재 쪽만 굵게, 총 쪽수는 흐리게」인데, 그러려면 이 한 줄을 둘로 갈라야 하고
+   그 순간 두 검사가 나란히 눈을 감는다. 그래서 **여기서는 가르지 않는다.**
+   종이에 찍히는 쪽번호는 애초에 이 칸이 아니라 render_pdf.py 의 도장이다(SKILL.md §6-4) —
+   굵기를 가르려면 그 도장에서 가른다. */
 .page-mark{position:absolute;right:0;bottom:9px;font-size:11px;color:var(--muted);
   font-variant-numeric:tabular-nums;white-space:nowrap}
-.section-desc{font-size:13.5px;color:var(--muted);margin-bottom:14px;line-height:1.6}
-.sub-title{font-size:15px;font-weight:800;margin:18px 0 9px}
+/* §2 제목줄 오른쪽은 «출처» 자리다 — 「이 섹션이 어디서 나온 이야기인가」.
+   적을 것이 없으면 비워 둔다(채우려고 지어내지 않는다). 흐름 밖(absolute)이라
+   비어도 제목이 단 1px 도 밀리지 않고, :empty 면 아예 그리지 않는다.
+   쪽 표시가 이미 오른쪽 아래를 쓰므로 출처는 그 «윗줄» 에 선다. */
+.sec-src{position:absolute;right:0;bottom:25px;font-size:11px;color:var(--muted);
+  text-align:right;white-space:nowrap}
+.sec-src:empty{display:none}
+.section-desc{font-size:13.5px;color:var(--muted);margin-bottom:15px;line-height:1.62}
+/* 2차 제목. 제목 «위» 20, «아래» 8 — 위가 커야 아래 내용과 한 덩어리로 묶인다 */
+.sub-title{font-size:14px;font-weight:800;letter-spacing:-.005em;margin:20px 0 8px}
 
-.info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-.info-card{background:var(--primary-pale);border-radius:10px;padding:13px;text-align:center}
-.info-card .label{font-size:11.5px;color:var(--muted);font-weight:600}
-.info-card .value{font-size:17px;font-weight:800;color:var(--primary);margin-top:4px}
+.info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.info-card{background:var(--primary-pale);border-radius:10px;padding:14px 11px 13px;text-align:center}
+/* §3 값과 단위는 **한 덩어리** — 값 46px/900 과 단위 15px/700 을 같은 줄에 2px 간격,
+   baseline 으로 붙인다. 라벨은 그 «아래» 흐린 한 줄이다 — 숫자가 먼저 읽혀야 한다.
+   ⚠ .num / .unit 은 빌더가 값을 갈라 줘야 켜진다. 갈라지기 전에는 «4문항 18점» 이
+   통째로 한 칸에 들어오므로 그때는 카드 폭을 넘지 않는 크기로 받는다 — 46px 로 받으면
+   넉 칸 격자에서 글자가 카드 밖으로 나간다. 큰 숫자를 먹이려고 줄을 접지 않는다
+   (접으면 카드 높이가 제각각이 되어 한 줄로 안 읽힌다). */
+.info-card .value{display:flex;align-items:baseline;justify-content:center;gap:2px;flex-wrap:wrap;
+  font-size:21px;font-weight:900;color:var(--primary);letter-spacing:-.03em;line-height:1.15;
+  word-break:keep-all}
+.info-card .value .num{font-size:46px;font-weight:900;letter-spacing:-.04em;line-height:1}
+.info-card .value .unit{font-size:15px;font-weight:700}
+.info-card .label{margin-top:9px;font-size:12.5px;color:var(--muted);font-weight:600;
+  word-break:keep-all}
+/* 넷 중 **하나만** 강조한다(§0-2) — 둘을 칠하면 둘 다 안 보인다. 그 자리엔 숫자가
+   아니라 «말» 이 들어간다(「오늘의 핵심」). 자리 순서가 강조를 정하지 않는다:
+   데이터가 지목한 카드에만 key 가 붙는다(§11 — 자동으로 칠하지 않는다). */
+.info-card.key{background:var(--accent-pale);border:1px solid var(--accent)}
+/* 강조 카드에는 숫자가 아니라 «말» 이 들어간다. 낱말이 음절에서 꺾이면 카드가 통째로
+   무너지므로 keep-all 로 낱말째 넘긴다 — 「조합 선 / 지」 로 갈린 자리가 있었다.
+   두 줄까지는 정상이라 줄간을 1.26 으로 좁혀 넉 칸 높이를 지킨다. */
+.info-card.key .value,.info-card.key .value .num{font-size:20px;line-height:1.26;color:var(--accent)}
+.info-card.key .value{word-break:keep-all;letter-spacing:-.02em}
 .callout{background:var(--accent-pale);border-left:4px solid var(--accent);border-radius:8px;
   padding:13px 15px;font-size:13.5px;line-height:1.6}
 
+/* §8 표 — 머리글은 진한 띠 + 흰 글자(게이트가 이 띠로 «표» 를 알아본다).
+   열두 행을 넘기는 문항표가 읽히려면 세 가지가 필요하다.
+     1) 행 높이  — 세로 7px · 가로 8px. 글자가 머리글 띠 끝에 닿지 않는 폭이다 (한 행 34px)
+     2) 숫자 정렬 — 숫자 열은 오른쪽 정렬 + tabular-nums 로 자릿수를 세운다.
+                    왼쪽 정렬한 숫자 열은 길이가 들쭉날쭉해 세로로 안 읽힌다
+     3) 열 너비  — 숫자·배지 열을 좁혀 못 박는다. 안 박으면 브라우저가
+                    빈 자리를 숫자 열에 나눠 줘서 «정답» 이 표 끝까지 떠내려간다 */
 table{width:100%;border-collapse:collapse;font-size:12.5px}
-th{background:var(--primary);color:#fff;padding:8px 6px;font-weight:700;text-align:left}
-td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--primary);color:#fff;padding:8px;font-weight:700;text-align:left;
+  letter-spacing:-.01em}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 tbody tr:nth-child(even) td{background:var(--zebra)}
-.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:800}
-.d-상{background:#FBE4E2;color:#B3271C}.d-중상{background:#FDEBD2;color:#9A5B06}
+/* 숫자 칸 — 머리글도 같이 오른쪽으로 가야 열이 한 줄로 선다 */
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+th.mid,td.mid{text-align:center}
+table.items th:nth-child(1){width:42px}   /* 번호 */
+table.items th:nth-child(3){width:50px}   /* 배점 */
+table.items th:nth-child(4){width:66px}   /* 난이도 */
+table.items th:nth-child(6){width:58px}   /* 정답 */
+
+/* §9-2 난이도 5단 — 한 글자 배지 다섯이 **서열로** 읽혀야 한다.
+   옛 배지는 빨강·주황·파랑·초록·회색이라 서열이 아니라 갈래로 읽혔다(무지개).
+   지금은 잉크가 한 방향으로만 줄어든다 — 면 · 테두리 · 면 · 테두리 · 맨몸.
+   흑백 복사에서도 같은 차례로 흐려진다. 폭을 못 박아 표에서 세로로 줄을 세운다.
+   이 다섯을 그대로 쓰는 곳이 하나 더 있다 — 난이도 분석의 다섯 칸(.diff-box).
+   거기가 이 색의 **범례**다. 색을 쓰고 범례를 안 붙이지 않는다(§11). */
+.badge{display:inline-block;min-width:36px;text-align:center;padding:3px 7px;border-radius:5px;
+  font-size:10.5px;font-weight:800;line-height:1.25;letter-spacing:-.01em;
+  border:1px solid transparent}
+.d-상{background:var(--accent);color:#fff;border-color:var(--accent)}
+.d-중상{background:var(--accent-pale);color:var(--accent);border-color:var(--accent)}
 .d-중{background:var(--primary-pale);color:var(--primary)}
-.d-중하{background:#E4F1E8;color:#1F6B3F}.d-하{background:var(--gray-pale);color:var(--muted)}
+.d-중하{background:var(--gray-pale);color:var(--muted);border-color:var(--line)}
+.d-하{color:var(--muted);font-weight:700}
 
-.bar-row{margin-bottom:9px}
-.bar-head{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;margin-bottom:3px}
-.bar-track{height:15px;background:var(--gray-pale);border-radius:8px;overflow:hidden}
-.bar-fill{height:100%;background:var(--primary);border-radius:8px}
+/* §6 가로 막대 — 한 줄 격자: 라벨(우측정렬) · 트랙 · 값. 값은 **트랙 밖** 오른쪽이다.
+   강조는 «1위» 가 아니라 «지목한 것» 이다(§11). 그래서 자동으로 칠하는 규칙을
+   여기 두지 않는다 — 칠할 줄은 데이터가 .em 으로 지목하고 색은 테마가 준다.
+   아무 줄도 지목하지 않으면 아무 것도 칠하지 않는다. 1위를 대신 칠하지 않는다. */
+/* 마크 규격은 dataviz 를 따른다 — 막대 두께는 칸을 다 채우지 않고(14px),
+   끝은 4px 로 둥글되 **바닥(왼쪽)은 각지다.** 알약 꼴(8px 양끝)로 두면 짧은 막대가
+   실제 값보다 길어 보이고 0 에 붙은 끝이 떠 보인다.
+   줄 간격은 6px — 막대 여섯 줄이 «여섯 장» 이 아니라 «한 그림» 으로 읽히는 폭이다.
+   테마가 알약 반지름을 얹어 오면 이 규격이 이긴다(.bar-track .bar-fill 로 한 칸 더 좁게 잡는다) */
+.bar-row{display:grid;grid-template-columns:116px 1fr 106px;align-items:center;
+  gap:10px;margin-bottom:6px}
+.bar-row:last-of-type{margin-bottom:0}
+.bar-label{font-size:12.5px;font-weight:700;text-align:right;line-height:1.3;word-break:keep-all}
+.bar-track{height:14px;background:var(--gray-pale);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;background:var(--primary)}
+.bar-track .bar-fill{border-radius:0 4px 4px 0}
+.bar-value{font-size:12px;font-weight:700;color:var(--muted);text-align:right;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+/* 막대 아래 **한 문장 해석**. 숫자만 두면 읽는 사람이 결론을 못 낸다(§6).
+   값이 없으면 그리지 않는다 — 지어낸 해석을 붙이지 않는다. */
+.bar-note{margin-top:14px;font-size:12.5px;color:var(--muted);line-height:1.62}
+.bar-note:empty{display:none}
+/* §9-2 난이도 다섯 칸 — 값이 먼저, 라벨이 아래. 라벨 자리에 표와 **같은 배지**를
+   세워 이 칸이 색의 범례 노릇을 하게 한다. 숫자는 22/900 으로 한 층 올려
+   실눈으로 봤을 때 다섯 칸에서 숫자가 먼저 읽히게 한다. */
 .diff-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:6px}
-.diff-box{border:1px solid var(--line);border-radius:10px;padding:11px 4px;text-align:center}
-.diff-box .n{font-size:19px;font-weight:800;color:var(--primary)}
-.diff-box .l{font-size:11.5px;color:var(--muted);font-weight:700;margin-top:2px}
+.diff-box{border:1px solid var(--line);border-radius:10px;padding:12px 4px 11px;text-align:center}
+.diff-box .n{font-size:22px;font-weight:900;color:var(--primary);letter-spacing:-.03em;line-height:1.1}
+.diff-box .l{font-size:11.5px;color:var(--muted);font-weight:700;margin-top:6px}
 
-.problem{border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:12px}
-.problem .head{display:flex;align-items:center;gap:9px;margin-bottom:9px;flex-wrap:wrap}
-.problem .num{width:24px;height:24px;border-radius:7px;background:var(--primary);color:#fff;
-  font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
-.problem .title{font-size:14px;font-weight:800}
-.block{background:var(--gray-pale);border-radius:8px;padding:10px 12px;margin-top:8px;font-size:12.5px;line-height:1.6}
-.block .bt{font-weight:800;font-size:12px;color:var(--primary);margin-bottom:4px}
+/* 킬러문항 카드 — 한 카드가 거의 한 장을 쓴다. 그래서 «카드 안» 과 «카드 사이» 의
+   여백이 같으면 다섯 장이 통째로 한 덩어리로 보인다. 안은 9, 사이는 16 으로 벌린다. */
+.problem{border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:14px}
+.problem:last-of-type{margin-bottom:0}
+/* §4 카드 머리띠 — 왼쪽은 «무엇인지», 오른쪽은 «어디서 온 것인지».
+   오른쪽 칸(.head-right)이 그 자리다. 지금은 정답 배지만 서 있고, .src 는
+   killer 에 source 가 들어오면 켜진다. 비어 있어도 왼쪽이 밀리지 않는다. */
+.problem .head{display:flex;align-items:center;gap:9px;margin-bottom:10px;flex-wrap:wrap}
+.problem .head-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
+.problem .src{font-size:11px;color:var(--muted);white-space:nowrap}
+.problem .src:empty{display:none}
+.problem .num{width:26px;height:26px;border-radius:7px;background:var(--primary);color:#fff;
+  font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;
+  font-variant-numeric:tabular-nums}
+.problem .title{font-size:15px;font-weight:800;letter-spacing:-.015em}
+/* 카드 안의 상자는 두 갈래다. 이 둘을 **면으로** 가른다 —
+     시험지에서 온 것(발췌·보기·선지·조건) : 흰 면 + 얇은 테두리
+     우리가 쓴 것(왜 어려웠나·오답 근거·푸는 순서) : 옅은 면
+   옛 판형은 조건까지 옅은 면이라 「학생이 지킬 조건」과 「우리 해설」이 같은 무게였다. */
+.block{background:var(--gray-pale);border-radius:8px;padding:10px 12px;margin-top:8px;
+  font-size:12.5px;line-height:1.6}
+.block .bt{font-weight:800;font-size:11.5px;letter-spacing:.045em;color:var(--primary);
+  margin-bottom:5px}
 .steps{list-style:none;counter-reset:s}
 .steps li{counter-increment:s;position:relative;padding-left:25px;margin-bottom:6px;font-size:12.5px;line-height:1.55}
+/* 번호 배지는 «순서» 를 말할 뿐 강조가 아니다. 강조색을 여기 쓰면 한 카드 안에서
+   조건 번호·푸는 순서 번호·오답 근거가 모두 같은 빨강이 되어, 정작 «갈린 칸»(§5 의 ★)이
+   묻힌다. 강조는 한 곳만이다(§0-2). 그래서 번호는 주색으로 둔다. */
 .steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:18px;height:18px;border-radius:5px;
-  background:var(--accent);color:#fff;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  background:var(--primary);color:#fff;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+/* §5 논리 3단 — 판단 절차를 세 칸으로 갈라 놓는다. **셋일 때만** 3단 카드이고,
+   넷 이상이면 세로 목록 그대로다(§11 — 3단 격자에 넷을 넣지 않는다).
+   이 분기를 :has() 로 «세어» 처리한다 — 렌더러도 사람도 개수를 따로 적지 않는다.
+   :has() 를 모르는 브라우저에서는 세로 목록으로 내려앉는다(깨지지 않는다).
+   번호는 원형 배지(22px)로 커지고, 조건 목록(.steps)은 이 분기를 타지 않는다. */
+.steps.flow:has(> li:nth-child(3):last-child){
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:3px}
+/* 세 칸은 **결론 줄이 한 줄에 서야** 3단으로 읽힌다. 설명 길이가 제각각이라
+   그냥 두면 결론이 칸마다 다른 높이에 떠서 세 칸이 따로 논다.
+   칸을 세로 flex 로 세우고 결론을 바닥으로 밀어 눈높이를 맞춘다. */
+.steps.flow:has(> li:nth-child(3):last-child) > li{
+  margin-bottom:0;padding:11px 11px 11px 38px;background:#fff;
+  border:1px solid var(--line);border-radius:10px;
+  display:flex;flex-direction:column;gap:7px}
+/* §5 결론 줄 — «→» 뒤. 빈 값이면 통째로 사라진다(지어내지 않는다) */
+/* 점선은 **3단 카드 안에서만** 긋는다(아래). 세로 목록에서 줄마다 가로선을
+   그으면 눈에도 표처럼 보이고, 게이트도 「머리글 없는 표」로 읽어 막는다 —
+   실제로 수학 목업 8쪽이 그렇게 걸렸다. 선의 뜻을 섞지 않는다(§0-4). */
+.steps.flow > li .concl{display:block;text-decoration:none;margin-top:4px;
+  font-weight:700;color:var(--accent);font-size:.94em}
+.steps.flow:has(> li:nth-child(3):last-child) > li .concl{
+  margin-top:auto;padding-top:7px;border-top:1px dashed var(--line)}
+.steps.flow > li .concl:empty{display:none}
+.steps.flow > li .concl::before{content:"→ "}
+.steps.flow > li.em{background:var(--accent-pale);border:2px solid var(--accent)}
+.steps.flow:has(> li:nth-child(3):last-child) > li::before{
+  left:11px;top:10px;width:22px;height:22px;border-radius:50%;font-size:11.5px}
+/* 카드 꼬리 — 앞 상자와 붙으면 상자 하나가 더 있는 것처럼 보인다. 한 칸 벌린다 */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
 .chip{background:var(--primary-pale);color:var(--primary);border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:700}
 
 /* 킬러문항 카드 — 문항 원문·선지·정답·오답 근거 */
 .k-tag{background:var(--gray-pale);color:var(--muted);border-radius:5px;padding:2px 8px;
   font-size:10.5px;font-weight:800;flex:none}
-.k-ans{margin-left:auto;background:var(--primary);color:#fff;border-radius:5px;padding:3px 9px;
+.k-ans{background:var(--primary);color:#fff;border-radius:5px;padding:3px 9px;
   font-size:11px;font-weight:800;flex:none}
+/* §7 원문은 줄간을 넓게 준다 — 손으로 표시할 자리가 있어야 한다 */
 .k-excerpt{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-left:3px solid var(--primary);
-  border-radius:8px;padding:10px 12px;margin-top:9px;font-size:12.5px;line-height:1.65}
+  border-radius:8px;padding:11px 12px;margin-top:10px;font-size:12.5px;line-height:1.72}
 .k-choices{list-style:none;margin-top:8px;display:grid;gap:4px}
 .k-choices li{display:flex;gap:7px;align-items:flex-start;font-size:12.5px;line-height:1.55}
 .k-choices .cn{flex:none;width:17px;height:17px;margin-top:1px;border-radius:50%;
   border:1px solid var(--line);color:var(--muted);font-size:10px;font-weight:800;
   display:flex;align-items:center;justify-content:center}
+/* §7 인용에는 **범례가 따라온다.** 색이나 선을 썼으면 그것이 무슨 뜻인지
+   바로 아래 11px 로 적는다 — 빠뜨리면 그 표시가 무슨 뜻인지 아무도 모른다. */
+.cap{margin-top:6px;font-size:11px;color:var(--muted);line-height:1.5}
 .block.wrong{background:var(--accent-pale)}
 .block.wrong .bt{color:var(--accent)}
 .block.model{background:var(--primary-pale);font-weight:700}
-/* 〈보기〉 — 선지가 이 기호를 가리키므로 발췌와 선지 사이에 둔다 */
-.block.givens{background:#fff;border:1px solid var(--line)}
+/* 〈보기〉·조건 — 시험지에서 온 글이라 흰 면이다. 선지가 보기의 기호를 가리키므로
+   〈보기〉는 발췌와 선지 사이에 둔다 */
+.block.givens,.block.origin{background:#fff;border:1px solid var(--line)}
 .given-list{list-style:none;display:grid;gap:4px}
 .given-list li{font-size:12.5px;line-height:1.6}
 .wrongs{list-style:none;display:grid;gap:5px}
 .wrongs li{position:relative;padding-left:15px;font-size:12.5px;line-height:1.6}
 .wrongs li::before{content:"";position:absolute;left:0;top:7px;width:6px;height:6px;
   border-radius:50%;background:var(--accent)}
+/* 카드 안의 카드는 언제나 틀렸다 — 오답 근거 상자는 이미 강조 면이다.
+   테마가 목록에도 같은 면과 테두리를 주면 분홍 상자 안에 분홍 상자가 한 겹 더 생긴다.
+   그 자리를 여기서 막는다(테마보다 한 칸 좁게 잡아 이긴다). 색 값은 적지 않는다. */
+.block.wrong .wrongs{background:none;border:0;padding:0}
 
 /* 출제에 문제가 있었던 문항 */
-.issue{border:1px solid var(--line);border-left:4px solid #B3271C;border-radius:10px;
-  padding:13px 15px;margin-bottom:10px}
+/* 색 값을 판형에 적지 않는다 — 테두리도 배지도 강조색 변수를 쓴다.
+   테마가 .issue 의 왼쪽 선과 .i-kind 를 다시 잡으므로 여기 값은 바닥값이다. */
+.issue{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;
+  padding:13px 15px;margin-bottom:12px}
+.issue:last-of-type{margin-bottom:0}
 .i-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
-.i-kind{background:#FBE4E2;color:#B3271C;border-radius:5px;padding:2px 8px;font-size:10.5px;font-weight:800}
+.i-kind{background:var(--accent-pale);color:var(--accent);border-radius:5px;padding:3px 8px;
+  font-size:10.5px;font-weight:800;line-height:1.25}
 .i-no{font-size:13.5px;font-weight:800}
 .i-label{font-size:11px;color:var(--muted)}
 .i-reason{font-size:12.5px;line-height:1.65}
 .i-excerpt{white-space:pre-wrap;background:var(--gray-pale);border-radius:8px;padding:9px 11px;
-  margin-top:7px;font-size:12px;line-height:1.6;color:var(--muted)}
+  margin-top:8px;font-size:12px;line-height:1.6;color:var(--muted)}
+/* 발췌가 없는 이슈가 있다. 비워 두면 빈 회색 띠가 그려져 «뭔가 빠진 자리» 로 보인다 */
+.i-excerpt:empty{display:none}
 
 figure{margin:10px 0}
 figure img{display:block;max-width:100%}
 figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
 
 .note-list{list-style:none}
-.note-list li{padding-left:18px;position:relative;margin-bottom:8px;font-size:13.5px;line-height:1.6}
+.note-list li{padding-left:18px;position:relative;margin-bottom:8px;font-size:13.5px;line-height:1.62}
+.note-list li:last-child{margin-bottom:0}
 .note-list li::before{content:"";position:absolute;left:0;top:8px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
-.final{background:var(--primary);color:#fff;border-radius:12px;padding:20px;margin-top:14px}
-.final .quote{font-size:15px;font-weight:800;margin-bottom:7px}
+/* 마무리 상자 — 이 리포트에서 **가장 큰 한 줄**이다. 본문(13.5)보다 한 층 위(16)에 둔다 */
+.final{background:var(--primary);color:#fff;border-radius:12px;padding:20px;margin-top:6px}
+.final .quote{font-size:16px;font-weight:800;margin-bottom:8px;letter-spacing:-.015em;line-height:1.4}
 .final .desc{font-size:12.5px;opacity:.9;line-height:1.65}
-.disclaimer{margin-top:12px;font-size:11px;color:var(--muted);line-height:1.55}
-.footer{text-align:center;color:var(--muted);font-size:11.5px;padding:16px 0}
-.footer strong{color:var(--ink)}
+.disclaimer{margin-top:14px;font-size:11px;color:var(--muted);line-height:1.55}
+/* §10 꼬리말 — 얇은 선 위, 왼쪽 메타 / 오른쪽 메타.
+   종이의 쪽번호는 여기서 세지 않는다. render_pdf.py 가 다 그려진 PDF 를 재서
+   장마다 오른쪽 아래에 찍는다(SKILL.md §6-4) — 한 장에 두 번 찍히면 안 된다. */
+.footer{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  border-top:1px solid var(--line);margin-top:6px;padding:11px 0 4px;
+  color:var(--muted);font-size:11.5px}
+.footer strong{color:var(--ink);font-weight:800}
+.footer .f-r{text-align:right}
 
 @page{size:A4;margin:11mm 9mm}
 @media print{
@@ -142,6 +337,12 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
   .container{max-width:100%}
   .cover{margin:0;border-radius:0;padding:40px;min-height:262mm;page-break-after:always;break-after:page;
     display:flex;flex-direction:column;justify-content:center;align-items:center}
+
+  /* §1 머리띠는 종이에서 **좌우 여백 밖까지** 나간다 — 띠는 전폭이어야 띠로 읽힌다.
+     세로로는 여백 안에 둔다(위로 빼면 잘릴 수 있다). 띠만 남고 내용이 넘어가지 않게
+     뒤에 오는 것과 붙여 둔다. */
+  .hdr{border-radius:0;margin:0 -9mm 7mm;padding:16px 9mm 13px;
+    page-break-inside:avoid;break-inside:avoid;page-break-after:avoid;break-after:avoid}
 
   /* 섹션은 장을 가로질러 흐른다. 빈 아래쪽을 남기지 않는 것이 목적이다 */
   .sec{margin:0 0 7mm;border-radius:0;box-shadow:none;padding:0;background:#fff;
@@ -165,7 +366,19 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
   tr,th,td{page-break-inside:avoid;break-inside:avoid}   /* 한 행이 반쪽 나지 않는다 */
   .info-card,.info-grid,.callout,.final,.diff-grid,.diff-box,.bar-row,
   .block,.chips,.note-list li,.steps li,figure,
-  .issue,.k-excerpt,.k-choices li,.wrongs li,.given-list li,.i-head{page-break-inside:avoid;break-inside:avoid}
+  .issue,.k-excerpt,.k-choices li,.wrongs li,.given-list li,.i-head,
+  .steps.flow:has(> li:nth-child(3):last-child),  /* §5 3단 카드는 한 덩어리다 */
+  /* 여기 있는 것은 «쪼개지면 뜻이 상하는 단위» 다. 줄이지 않는다 — 늘리기만 한다.
+     아래 여섯은 이번에 늘린 것이다. 배지·칩은 한 낱말이라 반으로 갈리면 안 되고,
+     이슈의 이유·발췌와 꼬리말·고지문은 반쪽이 다음 장에 남으면 뜻이 끊긴다. */
+  .badge,.chip,.k-tag,.k-ans,.i-excerpt,.i-reason,.disclaimer,.footer,
+  .problem .title,.problem .head-right,.bar-note,
+  .hdr,.bar-label,.bar-value{page-break-inside:avoid;break-inside:avoid}
+  /* §7 인용과 그 범례는 붙어 다닌다 — 캡션만 다음 장에 남으면 범례가 아니다 */
+  .cap{page-break-before:avoid;break-before:avoid;
+    page-break-inside:avoid;break-inside:avoid}
+  /* §6 막대 아래 한 문장 해석도 막대와 붙여 둔다 */
+  .bar-note{page-break-before:avoid;break-before:avoid}
   .i-head{page-break-after:avoid;break-after:avoid}   /* 배지만 남고 이유가 넘어가지 않는다 */
 
   /* 킬러문항 카드는 «문항 한 벌» 이라 이제 한 장을 거의 다 쓴다.
@@ -195,6 +408,22 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
   <div class="tags"><!-- REPEAT:cover.tags --><span class="tag">{{value}}</span><!-- /REPEAT:cover.tags --></div>
 </div>
 
+<!-- ═══════════ §1 머리띠 — 2쪽부터 «누구 것인가» 를 지고 간다 ═══════════
+     표지(.cover)는 학부모가 받는 첫인상이라 그대로 두고, 그 다음 장 맨 위에 띠를 얹는다.
+     지금은 표지 다음에 아무 표시가 없어 낱장으로 흩어지면 출처를 잃는다.
+     쪽마다 되풀이 찍는 것은 렌더러 몫이라 여기서는 한 번만 놓는다 — 섹션 밖이므로
+     어느 섹션을 빼도 이 띠는 남는다. -->
+<div class="hdr">
+  <div>
+    <div class="kick">{{brand.academy}} · 기출 분석 리포트</div>
+    <h2>{{meta.school}} <small>{{meta.grade_label}} · {{meta.subject}}</small></h2>
+  </div>
+  <div class="meta">
+    <b>{{meta.term}}</b>
+    {{meta.total_items}}문항 · {{meta.total_points}}점
+  </div>
+</div>
+
 <!-- SECTION:overview -->
 <div class="sec">
   <div class="sec-head">
@@ -204,7 +433,12 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
   <p class="section-desc">{{overview.desc}}</p>
   <div class="info-grid">
     <!-- REPEAT:overview.cards -->
-    <div class="info-card"><div class="label">{{label}}</div><div class="value">{{value}}</div></div>
+    <!-- §3 값이 먼저, 라벨이 아래. 값과 단위를 가르려면 이 줄을
+         <div class="value"><span class="num">…</span><span class="unit">…</span></div> 로 바꾼다 —
+         그러려면 overview.cards **모든 칸**에 num·unit 이 있어야 한다(없는 칸이 하나라도
+         있으면 렌더가 막힌다). 강조 카드도 같다: class="info-card key" 로 쓰려면
+         모든 칸에 key 가 ""/"key" 로 와야 한다. 지금은 아직 안 온다. -->
+    <div class="info-card {{key}}"><div class="value"><span class="num">{{num}}</span><span class="unit">{{unit}}</span></div><div class="label">{{label}}</div></div>
     <!-- /REPEAT:overview.cards -->
   </div>
   <div class="sub-title">출제 범위</div>
@@ -219,16 +453,19 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
     <div class="section-title">{{#SEC}}. 문항별 분석표</div>
     <div class="page-mark">{{PAGE_NUM}} / {{TOTAL_PAGES}} 페이지</div>
   </div>
-  <p class="section-desc">문항마다 유형·배점·난이도·출처를 표시했습니다. 난이도는 5단(상·중상·중·중하·하)입니다.</p>
-  <table>
+  <p class="section-desc">문항마다 유형·배점·난이도·출처를 표시했습니다. 난이도 배지는 5단(상·중상·중·중하·하)이며, 색이 진할수록 어려운 쪽입니다. 다섯 칸의 문항 수는 「난이도 분석」에 있습니다.</p>
+  <!-- 숫자 열(번호·배점·정답)은 class="num" 으로 오른쪽 정렬 + tabular-nums 한다.
+       머리글에도 같은 class 를 줘야 열이 한 줄로 선다. 난이도는 배지라 가운데(mid).
+       열 너비는 CSS 의 table.items 가 잡는다 — 안 잡으면 정답이 표 끝으로 떠내려간다. -->
+  <table class="items">
     <thead>
-    <tr><th>번호</th><th>유형</th><th>배점</th><th>난이도</th><th>출처</th><th>정답</th><!-- INTERNAL --><th>유형 판정 근거</th><th>판독</th><!-- /INTERNAL --></tr>
+    <tr><th class="num">번호</th><th>유형</th><th class="num">배점</th><th class="mid">난이도</th><th>출처</th><th class="num">정답</th><!-- INTERNAL --><th>유형 판정 근거</th><th>판독</th><!-- /INTERNAL --></tr>
     </thead>
     <tbody>
     <!-- REPEAT:items -->
-    <tr><td>{{no}}</td><td>{{type}}</td><td>{{points}}</td>
-        <td><span class="badge d-{{difficulty}}">{{difficulty}}</span></td>
-        <td>{{source}}</td><td>{{answer}}</td><!-- INTERNAL --><td>{{basis}}</td><td>{{confidence}}</td><!-- /INTERNAL --></tr>
+    <tr><td class="num">{{no}}</td><td>{{type}}</td><td class="num">{{points}}</td>
+        <td class="mid"><span class="badge d-{{difficulty}}">{{difficulty}}</span></td>
+        <td>{{source}}</td><td class="num">{{answer}}</td><!-- INTERNAL --><td>{{basis}}</td><td>{{confidence}}</td><!-- /INTERNAL --></tr>
     <!-- /REPEAT:items -->
     </tbody>
   </table>
@@ -242,12 +479,19 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
     <div class="page-mark">{{PAGE_NUM}} / {{TOTAL_PAGES}} 페이지</div>
   </div>
   <p class="section-desc">문항 수와 함께 배점을 봅니다. 문항 수가 같아도 배점이 다르면 체감이 다릅니다.</p>
+  <!-- §6 칠할 줄은 **데이터가 지목한다** — 1위를 자동으로 칠하지 않는다(§11).
+       켜는 법: 아래 여는 태그의 class 를 "bar-row «em»" 꼴로 바꾸고(«em» 자리에
+       자리표시자를 넣는다) types 의 **모든 줄**에 em 을 ""/"em" 으로 준다.
+       한 줄이라도 빠지면 렌더가 막힌다.
+       막대 아래 한 문장 해석은 이 REPEAT 가 닫힌 뒤 <p class="bar-note"> 한 줄이다. -->
   <!-- REPEAT:types -->
-  <div class="bar-row">
-    <div class="bar-head"><span>{{name}}</span><span>{{count}}문항 · {{points}}점</span></div>
+  <div class="bar-row {{em}}">
+    <div class="bar-label">{{name}}</div>
     <div class="bar-track"><div class="bar-fill" style="width:{{width}}%"></div></div>
+    <div class="bar-value">{{count}}문항 · {{points}}점</div>
   </div>
   <!-- /REPEAT:types -->
+  <p class="bar-note">{{types_note}}</p>
 </div>
 <!-- /SECTION:type-chart -->
 
@@ -259,11 +503,13 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
   </div>
   <p class="section-desc">{{chapter_desc}}</p>
   <!-- REPEAT:chapters -->
-  <div class="bar-row">
-    <div class="bar-head"><span>{{name}}</span><span>{{count}}문항 · {{points}}점</span></div>
+  <div class="bar-row {{em}}">
+    <div class="bar-label">{{name}}</div>
     <div class="bar-track"><div class="bar-fill" style="width:{{width}}%"></div></div>
+    <div class="bar-value">{{count}}문항 · {{points}}점</div>
   </div>
   <!-- /REPEAT:chapters -->
+  <p class="bar-note">{{chapters_note}}</p>
 </div>
 <!-- /SECTION:chapter-ratio -->
 
@@ -274,9 +520,12 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
     <div class="page-mark">{{PAGE_NUM}} / {{TOTAL_PAGES}} 페이지</div>
   </div>
   <p class="section-desc">{{difficulty.summary}}</p>
+  <!-- 라벨 자리에 문항표와 **같은 배지**를 세운다. 그래야 이 다섯 칸이
+       「표에서 본 그 색이 무슨 뜻인가」를 말해 주는 범례가 된다(§11 — 색을 쓰면 범례).
+       label 은 렌더러가 상·중상·중·중하·하 다섯으로 고정해 넘긴다. -->
   <div class="diff-grid">
     <!-- REPEAT:difficulty.bins -->
-    <div class="diff-box"><div class="n">{{count}}</div><div class="l">{{label}}</div></div>
+    <div class="diff-box"><div class="n">{{count}}</div><div class="l"><span class="badge d-{{label}}">{{label}}</span></div></div>
     <!-- /REPEAT:difficulty.bins -->
   </div>
   <div class="sub-title">변별 문항</div>
@@ -293,13 +542,25 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
   <p class="section-desc">가장 많이 갈린 문항입니다. 문항을 그대로 싣고, 왜 어려웠는지 · 그 오답이 왜 끌렸는지 · 어떻게 접근하는지를 붙였습니다.</p>
   <!-- REPEAT:killer -->
   <div class="problem">
+    <!-- §4 카드 머리띠 — 왼쪽은 «무엇인지»(번호·제목·갈래), 오른쪽은 «어디서 온 것인지».
+         출처(.src)를 켰다. 빌더가 killer 모든 칸에 source 를 넣어 준다 — 한 칸이라도
+         빠지면 렌더가 막히므로 빼지 않는다. 값이 비면 :empty 로 사라지고 정답 배지만 선다. -->
     <div class="head">
       <div class="num">{{no}}</div><div class="title">{{title}}</div>
       <span class="k-tag">{{kind}}</span>
-      <!-- REPEAT:answer_box --><span class="k-ans">{{answer_label}} {{answer}}</span><!-- /REPEAT:answer_box -->
+      <div class="head-right">
+        <span class="src">{{source}}</span>
+        <!-- REPEAT:answer_box --><span class="k-ans">{{answer_label}} {{answer}}</span><!-- /REPEAT:answer_box -->
+      </div>
     </div>
     <!-- 문항 원문 발췌 · 선지 · 조건 · 정답은 «있을 때만» 그린다 (렌더러가 한 칸짜리 목록으로 준다) -->
-    <!-- REPEAT:excerpt_box --><div class="k-excerpt">{{excerpt}}</div><!-- /REPEAT:excerpt_box -->
+    <!-- §7 인용 지면 — 원문은 세로선으로 연다. 그리고 **범례가 따라온다**:
+         이 상자가 무엇인지(시험지 원문인지 우리 글인지) 11px 로 바로 아래 적는다.
+         색이나 선을 쓰고 범례를 안 붙이지 않는다(§11). -->
+    <!-- REPEAT:excerpt_box -->
+    <div class="k-excerpt">{{excerpt}}</div>
+    <div class="cap">{{no}}번 문항 원문 발췌 — 왼쪽 세로선이 있는 글은 시험지 원문입니다</div>
+    <!-- /REPEAT:excerpt_box -->
     <!-- 〈보기〉 — 발췌와 선지 사이. 기호(ⓐⓑⓒ)는 글에 이미 들어 있으므로 다시 매기지 않는다.
          선지와 오답 근거가 그 기호로 보기를 가리킨다 -->
     <!-- REPEAT:given_box -->
@@ -310,8 +571,9 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
     <!-- REPEAT:choice_box -->
     <ol class="k-choices"><!-- REPEAT:choices --><li><span class="cn">{{@n}}</span><span>{{value}}</span></li><!-- /REPEAT:choices --></ol>
     <!-- /REPEAT:choice_box -->
+    <!-- 조건은 시험지가 건 조건이라 «우리 글» 이 아니다. 흰 면(.origin)으로 가른다 -->
     <!-- REPEAT:cond_box -->
-    <div class="block"><div class="bt">조건</div>
+    <div class="block origin"><div class="bt">조건</div>
       <ol class="steps"><!-- REPEAT:conditions --><li>{{value}}</li><!-- /REPEAT:conditions --></ol>
     </div>
     <!-- /REPEAT:cond_box -->
@@ -326,8 +588,13 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
       <ul class="wrongs"><!-- REPEAT:wrong_reasons --><li>{{value}}</li><!-- /REPEAT:wrong_reasons --></ul>
     </div>
     <!-- /REPEAT:wrong_box -->
+    <!-- §5 논리 3단 — 「푸는 순서」가 판단 절차라 세 칸으로 갈라 놓을 자리다.
+         flow 가 붙은 목록만 이 분기를 탄다(위의 «조건» 목록은 절차가 아니라 세로 그대로).
+         셋이면 3단 카드, 넷 이상이면 세로 목록 — 개수는 CSS 의 :has() 가 센다.
+         셋 중 «실제로 갈린 칸» 은 MD 에서 ★ 로 찍고, 빌더가 em 으로 넘긴다.
+         «→» 뒤는 결론 칸(.concl)으로 갈라진다 — layout-grammar.md §5. -->
     <div class="block"><div class="bt">푸는 순서</div>
-      <ol class="steps"><!-- REPEAT:steps --><li>{{value}}</li><!-- /REPEAT:steps --></ol>
+      <ol class="steps flow"><!-- REPEAT:steps_flow --><li class="{{em}}">{{text}}<s class="concl">{{conclusion}}</s></li><!-- /REPEAT:steps_flow --></ol>
     </div>
     <div class="chips"><!-- REPEAT:concepts --><span class="chip">{{value}}</span><!-- /REPEAT:concepts --></div>
   </div>
@@ -424,7 +691,14 @@ figcaption{font-size:11.5px;color:var(--muted);margin-top:5px}
 </div>
 <!-- /SECTION:summary -->
 
-<div class="footer">분석 · <strong>{{brand.academy}}</strong> &nbsp;|&nbsp; {{meta.school}} {{meta.term}} {{meta.subject}}</div>
+<!-- §10 꼬리말 — 얇은 선 위, 왼쪽 메타 / 오른쪽 메타.
+     쪽번호는 여기 적지 않는다: 종이의 쪽번호는 render_pdf.py 가 다 그려진 PDF 를
+     재서 장마다 찍는다(SKILL.md §6-4). 여기에 총 쪽수를 적으면 한 벌만 그리는
+     지름길에서 «00» 이 그대로 인쇄된다 — 실제로 그렇게 된다. -->
+<div class="footer">
+  <span class="f-l">분석 · <strong>{{brand.academy}}</strong></span>
+  <span class="f-r">{{meta.school}} {{meta.term}} · {{meta.subject}}</span>
+</div>
 
 </div>
 </body>

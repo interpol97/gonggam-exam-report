@@ -1,12 +1,167 @@
-/* mono — 무채색. 흑백 복사를 거치는 문서용.
-   색만으로 구분하지 않는다 — 굵기·테두리로 구분이 서야 한다 */
+/* mono - 무채색. 흑백 복사를 거치는 문서용.
+   2026-09-23 새 지면 문법의 부품에 맞춰 정비했다.
+
+   이 톤에는 «강조색» 이 없다. 그러니 강조를 색에 맡기면 강조가 통째로 사라진다.
+   여기서는 셋으로 가른다 -
+
+     1. 굵기   본문 400 대 강조 800/900
+     2. 테두리 얇은 1px 회색 대 굵은 2.5px 검정
+     3. 채움   민 회색 면 대 45도 빗금 (막대에만)
+
+   색은 명도 세 칸만 쓴다. 이 세 칸이 흑백 복사를 거쳐도 안 붙는다 -
+     검정 #18181B (명도 9.5%) · 중간회색 #52525B (32.6%) · 옅은 판 #E4E4E7 (89%)
+
+   -- 색을 숫자로 정한 자리 (규격 Q3. 바탕은 섹션 면 #FFFFFF 기준) --
+   본문   #18181B / 흰 바탕      17.72:1
+   보조   #6B6B73 / 흰 바탕       5.28:1   (종이색 #F4F4F5 위에서도 4.81:1)
+   주색   #52525B / 흰 바탕       7.73:1   흰 글자를 얹어도 7.73:1
+   강조   #18181B / 흰 바탕      17.72:1   글자로 그대로 쓴다. 나눌 까닭이 없다
+                    / 강조 면     14.62:1   (강조 면 #E9E9EC)
+   흑백 변환 명도(Rec.601) 주색 32.6% 대 강조 9.5% = 23.1%p 차 (20%p 넘음)
+
+   주색을 옛 #27272A 에서 #52525B 로 «올린» 것이 이 23.1%p 때문이다.
+   옛 값은 주색과 강조색이 둘 다 먹색이라 명도차가 0 에 가까웠다 -
+   복사기를 지나면 표 머리글과 강조 막대가 같은 검정 덩어리가 되었다.
+
+   -- dataviz validate_palette.js (막대 두 색 "#52525B,#18181B", surface #FFFFFF) --
+     [FAIL] Lightness band      outside band: [["#18181B",0.21]]
+     [FAIL] Chroma floor        below floor (reads gray): [["#52525B",0.015],["#18181B",0.006]]
+     [PASS] CVD separation      worst adjacent dE 23.1 (deutan) · tritan 23.1
+     [PASS] Normal-vision floor worst adjacent dE 23.2 (normal)
+     [PASS] Contrast vs surface all 2 >= 3:1
+     FAILED - fix the marked checks
+
+   두 FAIL 은 고치지 않는다. 고치면 이 톤이 아니게 된다 -
+   Chroma floor 는 «회색으로 읽힌다» 는 경고인데 이 톤은 회색으로 읽혀야 하고,
+   Lightness band 는 화면 차트의 밝기 띠라 먹색 막대를 밖으로 민다.
+   대신 dataviz 가 요구하는 secondary encoding 을 실제로 넣었다 -
+   빗금 채움 · 굵은 테두리 · 900 굵기라 색을 못 보는 눈으로도, 흑백 복사로도 갈린다.
+   CVD 와 명도차 검사는 그대로 통과한다(dE 23.1, 23.1%p). */
+
 :root{
-  --paper:#F4F4F5; --ink:#18181B; --muted:#71717A; --line:#D4D4D8;
-  --primary:#27272A; --primary-pale:#E4E4E7; --accent:#52525B; --accent-pale:#EFEFF1;
+  --paper:#F4F4F5; --ink:#18181B; --muted:#6B6B73; --line:#D4D4D8;
+  --primary:#52525B;            /* 중간회색 - 제목·표 머리글·막대 */
+  --primary-pale:#E4E4E7;
+  --accent:#18181B;             /* 강조는 먹색 그대로. 글자용과 면용을 나누지 않는다 */
+  --accent-fill:#18181B;
+  --accent-pale:#E9E9EC;
   --gray-pale:#F4F4F5; --zebra:#FAFAFA;
   --cover-bg:#18181B; --cover-fg:#FFFFFF;
 }
+
+/* 표지는 먹색 면이다. --accent 도 먹색이라 표지 위에서 글자가 통째로 사라진다.
+   그래서 표지 안의 글자색을 전부 밝은 쪽으로 다시 잡는다. */
+.cover .brand, .cover-brand-text{color:#E4E4E7}
+.cover h1 .highlight{color:#D4D4D8; text-decoration:underline; text-underline-offset:5px}
 .badge{border:1px solid currentColor}
-.bar-fill{background:repeating-linear-gradient(45deg,#3F3F46,#3F3F46 4px,#52525B 4px,#52525B 8px)}
-.cover .brand{color:#E4E4E7}
-.cover h1 .highlight{color:#D4D4D8}
+
+/* -- 머리띠 - 2쪽부터 반복되는 띠 (layout-grammar §1) ------------------
+   주색 면 + 강조색 4px 밑줄. 중간회색 면 아래 먹색 줄이라 복사를 거쳐도 띠가 선다. */
+.hdr{background:var(--primary); color:#fff; border-bottom:4px solid var(--accent)}
+.hdr .kick{color:rgba(255,255,255,.78)}
+.hdr .meta{color:rgba(255,255,255,.88)}
+.hdr .meta b{color:#fff}
+.cover{border-bottom:5px solid var(--accent)}
+.hd{border-bottom:3px solid var(--accent)}               /* 요약본 머리글 */
+
+/* -- 섹션 제목 앞 세로 막대 (§2) - 먹색으로 굵게 --------------------- */
+.section-title{padding-left:13px; position:relative; letter-spacing:-.015em; color:var(--ink)}
+.section-title::before{
+  content:""; position:absolute; left:0; top:3px; bottom:9px;
+  width:5px; background:var(--ink);
+}
+
+/* -- 해석 한 줄 · 범례 · 출처는 흐린 글자 (§6·§7·§2) ------------------- */
+.bar-note, .sec .cap, .cap .t span, .sec-src, .src, .problem .src, .rd-note{color:var(--muted)}
+/* .cap 를 통째로 흐리게 하지 않는다. 요약본 판형에서 .cap 은 상자 «제목 띠» 라
+   통째로 회색을 먹이면 제목이 흐려진다. 리포트 판형의 범례 캡션(.sec 안)과
+   요약본 캡션의 보조 글자(.cap .t span)만 흐리게 한다. */
+
+/* -- 표 ---------------------------------------------------------------- */
+thead th, th{background:var(--primary); color:#fff; letter-spacing:-.01em}
+td{border-bottom:1px solid var(--line)}
+tbody tr:nth-child(even) td{background:var(--zebra)}
+
+/* -- 숫자 카드 - 넷 중 하나만 강조 (§3) --------------------------------
+   색이 없으니 «면» 을 뒤집는다. 보통 카드는 옅은 회색 판, 강조 카드는 흰 판에
+   굵은 먹색 테두리 + 위쪽 7px 머리띠(§4). 복사기를 지나도 넷 중 하나가 바로 보인다. */
+.info-card{background:var(--primary-pale); border:1px solid var(--line)}
+.info-card .value, .info-card .value .num, .card .v, .nv, .diff-box .n{color:var(--ink)}
+.info-card .unit, .info-card .value .unit{color:var(--muted)}
+.info-card.key{background:#fff; border:2.5px solid var(--ink); border-top-width:7px}
+.info-card.key .value, .info-card.key .value .num,
+.info-card.key .value .unit, .info-card.key .unit{color:var(--ink); font-weight:900}
+.info-card.key .label{color:var(--ink); font-weight:800}
+
+/* -- 가로 막대 - 지목한 한 줄만 강조 (§6) ------------------------------
+   «1위 자동 강조» 를 하지 않는다. 칠할 줄은 데이터가 em 으로 지목한다.
+   회색을 조금 더 진하게 하는 것으로는 지목이 안 보인다. 그래서 «무늬» 로 가른다 -
+   보통 줄은 민 중간회색, 지목한 줄은 45도 먹색 빗금 + 1px 먹색 테두리.
+   무늬는 흑백 복사에서도 색각 이상에서도 그대로 남는다. */
+.bar-fill{background:var(--primary)}
+.bar-row.em .bar-fill, .bar-row[data-em="em"] .bar-fill{
+  background:repeating-linear-gradient(45deg,#18181B 0 3px,#FFFFFF 3px 6px);
+  box-shadow:inset 0 0 0 1px #18181B;
+}
+.bar-track{border:1px solid var(--line)}
+.bar-row.em .bar-label, .bar-row.em .bar-value, .bar-row.em .bar-head,
+.bar-row[data-em="em"] .bar-head, .bar-row[data-em="em"] .bar-label{
+  color:var(--ink); font-weight:900; letter-spacing:-.01em;
+}
+
+/* -- 논리 3단 - 갈린 칸 하나만 강조 (§5) -------------------------------
+   보통 칸은 흰 면에 얇은 회색 테두리, 갈린 칸은 옅은 회색 판에 2.5px 먹색 테두리.
+   결론 줄은 먹색 800 에 왼쪽 3px 먹색 기둥을 세운다 - 굵기만으로는 약하다. */
+.steps li::before, .steps.flow > li .no, .steps3 .st .no{background:var(--primary); color:#fff}
+.steps.flow > li, .steps3 .st{background:#fff; border:1px solid var(--line)}
+.steps.flow > li.em, .steps3 .st.em{background:var(--primary-pale); border:2.5px solid var(--ink)}
+.steps.flow > li.em::before, .steps3 .st.em .no{background:var(--ink); color:#fff}
+.steps.flow > li .concl, .steps3 .st .concl{
+  color:var(--ink); font-weight:800;
+  border-left:3px solid var(--ink); padding-left:7px;
+}
+
+/* -- 핵심·이슈·오답 근거 - 색 대신 테두리와 굵기 ------------------------ */
+.callout{background:var(--accent-pale); border-left:5px solid var(--ink)}
+.i-kind, .k-kind{background:#fff; color:var(--ink); border:1px solid var(--ink); font-weight:800}
+.issue{border:1px solid var(--line); border-left:5px solid var(--ink)}
+.wrongs{background:var(--accent-pale); border:1px solid var(--line)}
+.wrongs .bt, .wrong-label, .block.wrong .bt{color:var(--ink); font-weight:800}
+.wrongs li::before, .note-list li::before{background:var(--ink)}
+.chip, .k-tag{background:var(--primary-pale); color:var(--ink); border:1px solid var(--line)}
+.k-ans{background:var(--ink); color:#fff}
+
+/* -- 난이도 «배지» - 반드시 .badge 로 좁힌다 --------------------------
+   d-상 은 **두 곳에서 뜻이 다르다.** 상세본에서는 <span class="badge d-상">
+   (작은 배지)이고, 요약본에서는 <div class="dbox d-상"> (칸 전체)이다.
+   좁히지 않으면 요약본의 다섯 칸이 통째로 먹색 덩어리가 되고 그 안의 숫자와
+   라벨이 묻힌다 - 실제로 그렇게 나왔다. 판형이 같은 이름을 두 뜻으로 쓰는 한
+   테마는 .badge 를 붙여 가른다. */
+.badge.d-상{background:#18181B; color:#fff; border:0}
+.badge.d-중상{background:#52525B; color:#fff; border:0}
+.badge.d-중{background:#E4E4E7; color:#18181B; border:1px solid #18181B}
+.badge.d-중하{background:#F4F4F5; color:#3F3F46; border:1px dashed #71717A}
+.badge.d-하{background:#fff; color:#52525B; border:1px solid #D4D4D8}
+
+/* -- 레이다 (§9-1 가운데 그래프 자리) -----------------------------------
+   여기서도 명도 세 칸이다 - 먹색 선, 회색 면(낮은 불투명도), 아주 흐린 고리·살.
+   이 톤에서만 선을 주색이 아니라 먹색으로 올린다. 중간회색 선은 흑백 복사에서
+   회색 고리와 붙어 버리기 때문이다. 면은 주색을 옅게 깔아 선과 층을 나눈다.
+   .radar-* 가 새 이름, .rd-* 는 요약본 판형이 쓰던 옛 이름이다. 둘 다 받는다. */
+.radar-area, .rd-area{fill:var(--primary); fill-opacity:.20; stroke:var(--ink);
+  stroke-width:2.6; stroke-linejoin:round; vector-effect:non-scaling-stroke}
+.radar-line{fill:none; stroke:var(--ink); stroke-width:2.6;
+  stroke-linejoin:round; vector-effect:non-scaling-stroke}
+.radar-ring, .radar-spoke, .rd-grid{fill:none; stroke:var(--line); stroke-width:1.1}
+.radar-dot, .rd-dot{fill:var(--ink)}
+.radar-axis, .rd-lbl{fill:var(--ink); font-weight:700}
+
+/* -- 인쇄 - 그림자는 토너만 먹는다. 선으로 버틴다 ----------------------
+   강조 카드의 «흰 판 + 굵은 테두리» 는 인쇄에서도 그대로 둔다.
+   면이 아니라 테두리가 강조를 지고 있어서 토너를 거의 안 먹는다. */
+@media print{
+  .sec, .info-card, .card, .diff-box, .box, .problem, .issue, .callout, .killer, .final{
+    box-shadow:none;
+  }
+  .bar-row.em .bar-fill, .bar-row[data-em="em"] .bar-fill{box-shadow:inset 0 0 0 1px #18181B}
+}

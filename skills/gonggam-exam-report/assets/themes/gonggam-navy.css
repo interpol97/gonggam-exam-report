@@ -54,9 +54,35 @@ td{border-bottom:1px solid var(--line)}
 .wrongs{background:var(--accent-pale); border:1px solid #F2D6D1}
 .wrongs .bt, .wrong-label{color:var(--accent)}
 
-/* ── 막대 — 기본은 네이비, 1위만 빨강(첨부 자료의 규칙) ────── */
+/* ── 막대 — 강조는 «1위» 가 아니라 «지목한 행» ────────────────
+   처음엔 :first-of-type 을 칠했다. 본본을 다시 보니 틀렸다 —
+   본본 A 는 1위(분사 10개)를 칠하지 않고 4위(접속사·관계사 4개)를 칠했다.
+   1위는 「스스로 교정한 것」이라 문제가 아니고, 4위는 「한 지문에 몰려
+   전부 놓친 것」이라 문제였다. 개수가 아니라 뜻이 강조를 정한다.
+   그래서 데이터가 지목한다 — report.json 의 막대 행에 emphasis: true.
+   지목이 없으면 **아무 것도 칠하지 않는다.** 1위를 대신 칠하지 않는다.
+   규격: references/layout-grammar.md §6 */
 .bar-fill{background:var(--primary)}
-.bar-row:first-of-type .bar-fill{background:var(--accent)}
+.bar-row.em .bar-fill{background:var(--accent)}
+.bar-row.em .bar-head{color:var(--accent); font-weight:800}
+
+/* ── 숫자 카드 — 넷 중 하나만 강조 (§3) ────────────────────── */
+.info-card.key{background:var(--accent-pale); border-color:#F2D6D1}
+.info-card.key .value, .info-card.key .unit{color:var(--accent)}
+.info-card.key .label{color:#9C5248}
+
+/* ── 머리띠 — 2쪽부터 반복 (§1) ───────────────────────────── */
+.hdr{background:var(--primary); color:#fff; border-bottom:4px solid var(--accent)}
+.hdr .kick{color:rgba(255,255,255,.72)}
+.hdr .meta{color:rgba(255,255,255,.78)}
+.hdr .meta b{color:#fff}
+
+/* ── 논리 3단 — 가운데(지목한 칸)만 강조 (§5) ──────────────── */
+.steps3 .st{background:#fff; border:1px solid var(--line)}
+.steps3 .st.em{background:var(--accent-pale); border:2px solid var(--accent)}
+.steps3 .st .no{background:var(--primary); color:#fff}
+.steps3 .st.em .no{background:var(--accent)}
+.steps3 .st .concl{color:var(--accent)}
 
 /* ── 마무리 상자 — 네이비 면, 흰 글씨 ──────────────────────── */
 /* ⚠ 면을 어둡게 바꾸면 그 **안의 글자색도 전부** 다시 잡아야 한다.

@@ -80,6 +80,11 @@ def lookup(data, path):
                 raise KeyError(path)
             cur = cur[part]
         elif isinstance(cur, list) and part.isdigit():
+            # 범위를 벗어나면 IndexError 로 **죽는다.** 부르는 쪽은 KeyError 만
+            # 잡으므로, 「채워지지 않은 자리」라는 곱은 말 대신 역추적이 뜬다.
+            # {{killer.0.no}} 를 쓰는데 killer 가 빈 목록일 때가 그 자리다.
+            if int(part) >= len(cur):
+                raise KeyError(path)
             cur = cur[int(part)]
         else:
             raise KeyError(path)
@@ -500,7 +505,7 @@ def logo_block(brand):
     return '<div class="cover-logo-plain">%s</div>' % img
 
 
-def cached_subset(src, chars):
+def cached_subset(src, chars, sources=None):
     """서브셋 결과를 임시폴더에 재워 둔다 — 같은 폰트·같은 글자면 다시 깎지 않는다.
 
     2.1MB woff2 두 벌을 깎아 brotli 로 다시 누르는 데 PC 가 바쁘면 수십 초가 든다.
@@ -523,7 +528,7 @@ def cached_subset(src, chars):
         if data:
             return data, "%.0fKB (재사용)" % (len(data) / 1e3)
 
-    data, note = subset_font.build(src, chars)
+    data, note = subset_font.build(src, chars, sources)
     try:
         os.makedirs(box, exist_ok=True)
         tmp = hit + ".%d.part" % os.getpid()        # 여럿이 같이 돌아도 반쪽 파일이 안 남는다
@@ -535,7 +540,7 @@ def cached_subset(src, chars):
     return data, note
 
 
-def font_face_css(chars):
+def font_face_css(chars, sources=None):
     """동봉 woff2 만 쓴다. 없으면 렌더를 막는다 (조용한 대체 금지).
     쓰인 글자만 남겨서 박는다 — 전체를 담으면 산출물이 5MB 를 넘어 메일에 못 붙인다.
 
@@ -544,7 +549,10 @@ def font_face_css(chars):
 
     굵기는 셋이다 — 400 본문 · 700 강조 · **900 제목·큰 숫자.**
     900 이 없으면 브라우저가 말없이 700 으로 떨어뜨린다. 그러면 원장님 눈에는
-    «굵기가 반영 안 된» 보고서로 보인다. 그래서 **하나라도 없으면 막는다.**"""
+    «굵기가 반영 안 된» 보고서로 보인다. 그래서 **하나라도 없으면 막는다.**
+
+    sources 는 «없는 글자가 어디에 있나» 를 말하기 위한 것이다 (판형·테마·데이터).
+    없어도 막는 판단은 같다 — 자리를 못 짚을 뿐이다. references/glyphs.md."""
     import subset_font
 
     chars = set(chars) | set("0123456789")
@@ -563,7 +571,7 @@ def font_face_css(chars):
         weight = 900 if "900" in n else (700 if "700" in n else 400)
         src = os.path.join(FONTS, n)
         try:
-            data, note = cached_subset(src, chars)
+            data, note = cached_subset(src, chars, sources)
         except subset_font.FontError as e:
             raise RenderError(str(e))
         notes.append("%d %s" % (weight, note))
@@ -681,7 +689,9 @@ def to_pdf(html_path, pdf_path):
             "쪽수를 재려면 PDF 를 만들어야 하는데 실패했습니다.\n  %s" % e)
 
 
-def render(data, out_dir, internal=False, summary=False):
+def render(data, out_dir, internal=False, summary=False, src=None):
+    # src 는 report.json 의 경로다. 조판에는 쓰이지 않는다 — 폰트에 없는 글자를 만났을 때
+    # «데이터 몇 번째 줄» 까지 짚어 주기 위해서만 쓴다.
     data = derive(data)
     brand = data.get("brand") or {}
     sections = data.get("sections")
@@ -744,12 +754,24 @@ def render(data, out_dir, internal=False, summary=False):
     # 폰트는 한 번만 만들어 모든 패스가 **같은 글자폭**을 쓰게 한다.
     # 채움 블록의 글자까지 미리 담는다 — 2패스에서 블록이 켜져도 두부가 안 난다.
     import subset_font
-    chars = subset_font.chars_of(paint_marks(skeleton, anchors, None, None))
+    painted = paint_marks(skeleton, anchors, None, None)
+    chars = subset_font.chars_of(painted)
     if can_fill:
         full, full_anchors, _ = expand(cands)
-        chars = chars | subset_font.chars_of(paint_marks(full, full_anchors, None, None))
+        painted = paint_marks(full, full_anchors, None, None)
+        chars = chars | subset_font.chars_of(painted)
         skeleton, anchors, kept = expand([])
-    font_css, font_notes = font_face_css(chars)
+
+    # 폰트에 없는 글자가 나오면 «어디에 있는지» 를 말해야 한다 — 판형인지 테마인지
+    # 데이터인지. 조판 결과만 보면 셋이 이미 한 덩어리라 원인을 못 짚는다.
+    # 조판 결과는 **앞의 셋에서 못 찾았을 때만** 쓰는 마지막 수단이다.
+    font_src = [subset_font.source("판형", template_path(summary), tpl),
+                subset_font.source("테마", os.path.join(THEMES, "%s.css" % (brand.get("theme") or "clean")))]
+    if src and os.path.exists(src):
+        font_src.append(subset_font.source("데이터", src))
+    font_src.append(subset_font.source("조판 결과", "(조판된 HTML)", painted,
+                                       kind="html", fallback=True))
+    font_css, font_notes = font_face_css(chars, font_src)
 
     def build(skeleton, anchors, pages, total):
         out = paint_marks(skeleton, anchors, pages, total)
@@ -879,9 +901,24 @@ def render(data, out_dir, internal=False, summary=False):
     return path
 
 
+def list_themes():
+    """있는 테마를 세어서 말한다. 사람이 세지 않는다 —
+    문진 표(asking.md Q3)와 실제 파일이 어긋나면 그 테마는
+    «파일은 있는데 고를 길이 없는» 상태가 된다."""
+    have = sorted(x[:-4] for x in os.listdir(THEMES) if x.endswith(".css"))
+    print("테마 %d개: %s" % (len(have), " · ".join(have)))
+    print("고르는 법 — report.json 의 brand.theme, 또는 --theme <이름>")
+    return have
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     flags = [a for a in sys.argv[1:] if a.startswith("--")]
+    theme = next((f.split("=", 1)[1] for f in flags if f.startswith("--theme=")), None)
+    flags = [f for f in flags if not f.startswith("--theme=")]
+    if "--list-themes" in flags:
+        list_themes()
+        return
     unknown = [f for f in flags if f not in ("--internal", "--summary")]
     if unknown:
         print("모르는 옵션입니다: %s" % " ".join(unknown), file=sys.stderr)
@@ -891,8 +928,11 @@ def main():
         print(__doc__)
         sys.exit(1)
     data = json.load(io.open(args[0], encoding="utf-8"))
+    if theme:
+        data.setdefault("brand", {})["theme"] = theme
     try:
-        render(data, args[1], internal="--internal" in flags, summary="--summary" in flags)
+        render(data, args[1], internal="--internal" in flags, summary="--summary" in flags,
+               src=args[0])
     except RenderError as e:
         print("\n[렌더 실패] %s" % e, file=sys.stderr)
         sys.exit(1)
