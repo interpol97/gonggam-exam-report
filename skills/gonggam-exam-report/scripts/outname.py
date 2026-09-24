@@ -25,20 +25,40 @@ PLUGINS = os.path.abspath(os.path.join(HERE, "..", "..", "..", ".."))
 SHARED = os.path.join(PLUGINS, "gonggam-material-studio", "assets")
 
 
+# 이 플러그인만 따로 받는 사람이 있다(공개 배포판). 그때는 옆에 자료제작소가 없다.
+# 그래서 같은 파일을 assets/ 에 **동봉**해 두고, 옆에 정본이 있으면 정본이 이긴다.
+# 규격을 두 벌 «만드는» 것이 아니라 한 벌을 복사해 두는 것이다 —
+# 갈라지지 않게 배포할 때 다시 복사한다(HANDOFF 의 배포 절차).
+VENDORED = os.path.join(os.path.dirname(HERE), "assets")
+
+
 def _shared():
-    """공용 검사기를 불러온다. 없으면 **막는다** — 자기 문법으로 대신하지 않는다."""
-    if SHARED not in sys.path:
-        sys.path.insert(0, SHARED)
-    try:
+    """공용 검사기를 불러온다.
+
+    ① 옆에 자료제작소가 있으면 **그 정본**을 쓴다
+    ② 없으면 동봉본(assets/filename_check.vendored.py)을 쓴다
+    ③ 둘 다 없으면 **막는다** — 자기 문법을 따로 만들지 않는다
+    """
+    if os.path.exists(os.path.join(SHARED, "filename_check.py")):
+        if SHARED not in sys.path:
+            sys.path.insert(0, SHARED)
         import filename_check
-    except ImportError:
-        raise SystemExit(
-            "공용 파일명 검사기를 찾지 못했습니다:\n"
-            "  %s\\filename_check.py\n"
-            "  이 스킬은 규격을 따로 갖지 않습니다. gonggam-material-studio 가 있어야 합니다."
-            % SHARED
-        )
-    return filename_check
+        return filename_check
+
+    vend = os.path.join(VENDORED, "filename_check.vendored.py")
+    if os.path.exists(vend):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("filename_check_vendored", vend)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    raise SystemExit(
+        "파일명 규격을 찾지 못했습니다. 둘 중 하나가 있어야 합니다:\n"
+        "  %s\\filename_check.py            (자료제작소가 함께 깔린 경우)\n"
+        "  %s\\filename_check.vendored.py   (이 플러그인만 받은 경우)\n"
+        "  이 스킬은 규격을 따로 만들지 않습니다." % (SHARED, VENDORED)
+    )
 
 
 TERM_RE = re.compile(r"(\d{2,4})\D*?([12])\s*학기\s*(중간|기말)")

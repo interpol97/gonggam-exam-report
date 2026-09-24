@@ -171,6 +171,41 @@ python $SK/scripts/render_report.py --list-themes
 
 ---
 
+## 5.5 배포 — 이 플러그인만 따로 내보낸다
+
+공감 플러그인 저장소에는 자료제작소·문제풀이 논리가 함께 있다. 통째로 주지 않는다.
+`git subtree` 로 **이 폴더만** 밀어낸다. 원본은 하나로 둔다.
+
+```bash
+cd C:/dev/apps/gonggam-claude-plugins
+
+# ① 공용 파일명 규격을 다시 복사한다 — 이걸 빼먹으면 배포판이 옛 규격을 들고 나간다
+cp plugins/gonggam-material-studio/assets/filename_check.py \
+   plugins/gonggam-exam-report/skills/gonggam-exam-report/assets/filename_check.vendored.py
+
+# ② 이 폴더만 잘라 ③ 배포 저장소로
+git subtree split --prefix=plugins/gonggam-exam-report -b dist/exam-report -f
+git push https://github.com/interpol97/gonggam-exam-report.git dist/exam-report:main -f
+```
+
+**①을 건너뛰지 않는다.** `outname.py` 는 옆에 자료제작소가 있으면 그 정본을 쓰고,
+없으면 동봉본을 쓴다. 배포판을 받은 사람에게는 **동봉본이 유일한 규격**이라,
+복사를 빼먹으면 그 사람만 옛 규칙으로 이름을 짓는다. 두 벌이 갈라지는 자리가 여기다.
+
+확인 — 배포판이 **혼자서도 도는가**:
+
+```bash
+# 자료제작소가 없는 자리를 흉내 내서 돌려 본다
+python -c "import sys; sys.path.insert(0,'scripts'); import outname; print(outname._shared().__file__)"
+```
+
+`filename_check.vendored.py` 가 나오면 맞다. 원본 자리에서는 `filename_check.py`(정본)가 나와야 한다.
+
+배포 저장소: `interpol97/gonggam-exam-report` (공개).
+받는 쪽은 `/plugin marketplace add interpol97/gonggam-exam-report` 한 줄이면 된다.
+
+---
+
 ## 6. 손대면 안 되는 자리
 
 - **`.page-mark` 의 «N / M 페이지»** — 두 검사기가 이 한 줄을 **글자 그대로** 읽는다.
