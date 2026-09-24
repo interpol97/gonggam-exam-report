@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-marketplace.json",
+  "name": "gonggam-exam-report",
+  "owner": {
+    "name": "공감에듀테크",
+    "email": "interpol97@gmail.com"
+  },
+  "description": "공감에듀 기출 분석 리포트 — 시험지를 넣으면 학부모용 상세본과 A4 한 장 요약본이 나옵니다. 영어·수학·국어·과학 전과목.",
+  "plugins": [
+    {
+      "name": "gonggam-exam-report",
+      "displayName": "공감에듀 기출 분석 리포트",
+      "description": "시험지 PDF·사진·스캔을 받아 ① 문제·정답·해설 MD ② 유형별·출제별·난이도별 분석 MD ③ 학원 브랜딩 A4 리포트(상세본·요약본)를 낸다. 판단(판독·유형분류·난이도)은 Claude 가 하고 조판·번호·검증은 렌더러와 게이트가 맡는 분업이라, 같은 입력이면 같은 조판이 나온다. 요약본은 A4 한 장을 넘기면 발행이 막힌다.",
+      "source": "./",
+      "category": "Education"
+    }
+  ]
+}

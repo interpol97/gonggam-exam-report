@@ -115,11 +115,16 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
    라벨과 값을 세로로 쌓아 두 칸만 세운다 — 옆으로 넷을 늘어놓으면 표로 읽힌다. */
 .foot{flex:none;margin:1mm 2.8mm 1.6mm;padding-top:.9mm;
   border-top:0.7pt dotted var(--muted);display:grid;grid-template-columns:1fr 1fr;gap:2.8mm}
-.foot>div{display:flex;align-items:baseline;justify-content:space-between;gap:1.4mm;min-width:0}
-.foot .fl{font-size:6.5pt;font-weight:700;color:var(--muted);letter-spacing:.02em;line-height:1.2;
-  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.foot .fv{flex:none;font-size:9pt;font-weight:900;color:var(--accent);letter-spacing:-.02em;
-  line-height:1.2}
+/* ⚠ 라벨과 값을 **옆으로** 두지 않는다. 옆으로 두면 값이 안 줄고(flex:none) 라벨만
+   깎여, 레이다가 서서 밴드가 3칸이 될 때 라벨이 통째로 사라진다 —
+   「가장 많이 나온 출처」가 «가…» 한 글자가 됐다(영어·수학·과학 세 과목).
+   국어만 멀쩡했던 것은 유형 축이 둘이라 레이다가 안 서서 밴드가 2칸이었기 때문이다.
+   세로로 쌓으면 폭이 좁아져도 라벨이 접힐 뿐 사라지지 않는다. */
+.foot>div{display:flex;flex-direction:column;gap:.25mm;min-width:0}
+.foot .fl{font-size:6.5pt;font-weight:700;color:var(--muted);letter-spacing:.02em;
+  line-height:1.15;min-width:0}
+.foot .fv{font-size:9pt;font-weight:900;color:var(--accent);letter-spacing:-.02em;
+  line-height:1.15}
 /* 난이도 5단 — 숫자 다섯을 늘어놓지 않는다. **높이**가 먼저 읽히고 숫자가 그 값을 말한다
    (layout-grammar §6 의 가로 막대를 세로로 세운 꼴).
    칸 높이는 «그 난이도의 문항 수 ÷ 전체 문항 수» 다. 렌더러가 난이도 칸에는 비중을
@@ -264,9 +269,13 @@ body{font-family:'ReportKR',sans-serif;color:var(--ink);background:var(--paper);
 .fill .cap{margin-bottom:1mm;padding-bottom:.8mm}
 /* 주차별 학습 전략 — 주차 | 집중할 것 | 할 일.
    네 줄이 남는 자리에 들어가야 해서 행간을 조인다 */
+/* ⚠ 가로줄을 긋지 않는다. 조판 검사가 «머리글 없는 표 행» 으로 읽어 발행을 막는다 —
+   국어·과학 두 과목에서 났고, 목업은 이 블록을 빼서 피해 다녔다. 줄을 가르는 일은
+   선이 아니라 **여백**이 한다(layout-grammar.md §0-4 — 선의 뜻을 섞지 않는다).
+   그래도 줄이 갈려 보여야 하므로 주차 칸에 색을 남긴다. */
 .plan-row{display:flex;gap:2.4mm;align-items:baseline;font-size:8.2pt;line-height:1.35;
-  padding:.4mm 0;border-top:0.6pt dotted var(--line)}
-.plan-row:first-child{border-top:0;padding-top:0}
+  padding:.75mm 0}
+.plan-row:first-child{padding-top:0}
 .plan-row .pw{flex:none;width:16mm;font-weight:700;color:var(--primary)}
 .plan-row .pf{flex:none;width:34mm;font-weight:700}
 .plan-row .pt{min-width:0;color:var(--ink)}

@@ -67,8 +67,17 @@ TYPES_SUMMARY = 3           # 요약본은 배점 상위 3개만 (summary-spec.m
 # 2쪽이 난다. 요약본 여유분은 실측 약 22mm ≈ 네 줄뿐이다 (summary-spec.md § 5).
 EXCERPT_DETAIL = 8
 EXCERPT_CHARS_DETAIL = 900
+# 서술형은 여섯 줄이 안 들어간다 — 실측으로 확인했다 (summary-spec.md § 5).
+# 대표 문항이 서술형이면 〈조건〉 상자와 모범답안 줄이 더 붙고, 고지 문구가
+# 길어지며 꼬리말이 3.8mm 커졌다. 그래서 같은 여섯 줄인데 객관식은 1쪽,
+# 서술형은 2쪽이 된다.
+#
+# 한도를 **갈래마다 따로** 둔다. 하나로 두면 둘 중 하나는 반드시 틀린다 —
+# 낮춰 잡으면 객관식이 손해를 보고, 높여 잡으면 서술형이 발행에서 막힌다.
 EXCERPT_SUMMARY = 6
+EXCERPT_SUMMARY_ESSAY = 4
 EXCERPT_CHARS_SUMMARY = 420         # 6줄 × 70자 (본문 폭 182mm)
+EXCERPT_CHARS_SUMMARY_ESSAY = 280   # 4줄 × 70자
 CHARS_PER_LINE = 70
 ISSUE_EXCERPT_SUMMARY = (1, 60)     # 요약본 이슈 발췌는 한 줄 60자
 ELLIPSIS = " …"                     # 잘랐으면 잘랐다고 남긴다. 조용히 버리지 않는다
@@ -593,6 +602,22 @@ def split_givens(lines):
     return [g for g in out if g]
 
 
+def limits_for(kind, summary, override=None):
+    """발췌 한도 — 갈래와 판형이 함께 정한다. 규격: summary-spec.md § 5
+
+    사람이 --excerpt-lines 로 직접 정하면 그것이 이긴다. 그 다음은 요약본이고,
+    요약본 안에서도 **서술형이면 더 좁다.** 상세본은 갈래를 가리지 않는다 —
+    여러 장이라 한 문항이 길어도 다음 장으로 흐르면 그만이다.
+    """
+    if override:
+        return override, override * CHARS_PER_LINE
+    if not summary:
+        return EXCERPT_DETAIL, EXCERPT_CHARS_DETAIL
+    if kind == "서술형":
+        return EXCERPT_SUMMARY_ESSAY, EXCERPT_CHARS_SUMMARY_ESSAY
+    return EXCERPT_SUMMARY, EXCERPT_CHARS_SUMMARY
+
+
 COND_RE = re.compile(r"^조건\s*\d*\s*[.)]?\s*(.+)$")
 
 
@@ -874,7 +899,23 @@ def split_cards(cards, errors):
         errors.append("숫자 카드 중 «말» 카드가 %d개입니다 (%s) — 강조는 하나뿐입니다. "
                       "하나만 남기고 나머지는 숫자로 쓰십시오 (layout-grammar.md §0-2)"
                       % (len(word), " · ".join(word)))
-    return cards
+    return cards, word
+
+
+def card_note(word, cards):
+    """말 카드가 하나도 없으면 알린다 — **막지는 않는다.**
+
+    본본(학생관리 보고서)은 넷째 카드를 「It ~ that 강조 vs 가주어 / 오늘의 핵심
+    지도 포인트」로 두었다. 숫자 넷을 늘어놓으면 넷이 똑같은 무게가 되어
+    «무엇이 중요한가» 가 사라진다. 강조 한 자리가 거기다(layout-grammar.md §3).
+
+    다만 숫자 넷이 맞는 회차도 있으니 차단하지 않는다. 고르는 것은 사람이다.
+    """
+    if word or not cards:
+        return []
+    return ["숫자 카드 %d장이 전부 숫자입니다 — 넷째를 «말» 카드로 두면 그 자리가 "
+            "이번 회차의 한 줄이 됩니다(예: 「서술형 영작·어법 셋」). "
+            "숫자로 두어도 됩니다 (layout-grammar.md §3)" % len(cards)]
 
 
 def mark_emphasis(rows, name, where, errors):
@@ -970,12 +1011,6 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
     if errors:
         fail(errors)
 
-    if excerpt_lines:
-        max_lines, max_chars = excerpt_lines, excerpt_lines * CHARS_PER_LINE
-    elif summary:
-        max_lines, max_chars = EXCERPT_SUMMARY, EXCERPT_CHARS_SUMMARY
-    else:
-        max_lines, max_chars = EXCERPT_DETAIL, EXCERPT_CHARS_DETAIL
     by_no = {}
     for it in items:
         no = int(it["no"])
@@ -1017,6 +1052,9 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
         conditions = conditions_of(qb["lines"])
         givens = split_givens(qb["lines"])
         model = strip_markup(text_of(parts.get("모범답안", [])))
+        # 갈래를 먼저 정한다 — 발췌 한도가 갈래마다 다르다(서술형이 더 좁다).
+        kind = ("서술형" if is_essay(it.get("type")) or (model and not choices)
+                else "객관식")
         by_no[no] = {
             "item": it,
             # 갈래는 **유형이 먼저 정한다.** 선지 유무«만»으로 가르면, 선지를 못 읽은
@@ -1030,8 +1068,7 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
             #
             # 그래서 둘을 **함께** 본다 — 유형이 말해 주거나, 아니면
             # «모범답안이 있고 선지가 없다». 34번은 모범답안이 없으므로 그대로 객관식이다.
-            "kind": ("서술형" if is_essay(it.get("type")) or (model and not choices)
-                     else "객관식"),
+            "kind": kind,
             "conditions": conditions,
             "figures": figures_of(qb["lines"], md_dir),
             "givens": givens,
@@ -1045,7 +1082,10 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
             "concepts": (bullets_of(parts.get("필요 개념", []))
                          or [c.strip() for c in re.split(r"[·,]",
                              text_of(parts.get("필요 개념", []))) if c.strip()]),
-            "excerpt": clip_lines(passage_of(qb["lines"]), max_lines, max_chars),
+            # 갈래마다 한도가 다르다 — 서술형은 〈조건〉·모범답안이 더 붙어
+            # 같은 줄 수에 2쪽이 된다. 갈래를 아는 여기서 잰다.
+            "excerpt": clip_lines(passage_of(qb["lines"]),
+                                  *limits_for(kind, summary, excerpt_lines)),
             "excerpt_full": passage_of(qb["lines"]),
             "choices": choices,
             "stem": plain(re.sub(r"\[\s*\d+\s*점\s*\]", "", qb["title"])),
@@ -1186,7 +1226,8 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
     # 쓰는 까닭 자체를 지운다. 막대는 많이 나온 것을, 레이다는 전체 꼴을 말한다.
     report["radar"] = build_radar(all_types)
     if report.get("overview", {}).get("cards"):
-        split_cards(report["overview"]["cards"], errors)
+        _cards, _word = split_cards(report["overview"]["cards"], errors)
+        notes += card_note(_word, _cards)
     if errors:
         fail(errors)
 
@@ -1368,8 +1409,11 @@ def build(exam_path, md_dir, out_path, summary=False, excerpt_lines=None):
         ex = report["killer"][0]["excerpt"] if report["killer"] else ""
         print("       유형 상위 %d개(전체 %d갈래) · 섹션 %d개"
               % (len(report["types"]), len(all_types), len(sections)))
-        print("       발췌 %d줄 %d자 (한도 %d줄 %d자)%s"
-              % (len(ex.splitlines()), len(ex), max_lines, max_chars,
+        # 한도는 대표 문항의 갈래가 정한다 — 갈래를 함께 찍어야 「왜 넷인가」를 안다.
+        k_kind = report["killer"][0]["kind"] if report["killer"] else "객관식"
+        lim_l, lim_c = limits_for(k_kind, True, excerpt_lines)
+        print("       발췌 %d줄 %d자 (%s 한도 %d줄 %d자)%s"
+              % (len(ex.splitlines()), len(ex), k_kind, lim_l, lim_c,
                  " — 잘랐습니다" if ex.endswith(ELLIPSIS.strip()) else ""))
         if report["killer"]:
             k0 = report["killer"][0]

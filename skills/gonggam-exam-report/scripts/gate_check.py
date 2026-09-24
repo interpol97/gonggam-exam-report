@@ -50,8 +50,14 @@ WHITE_TEXT = 0xF0F0F0    # 머리글 글자색(흰색) 판정 기준
 
 # ── 요약본 기준값 — references/summary-spec.md 가 정본 ────────────────────
 SUMMARY_MARK = 'class="page sheet"'   # 요약본 템플릿의 바깥 상자 (§ 7)
-EXCERPT_LINES = 6                     # 대표 문항 발췌 한도 (§ 5)
-EXCERPT_CHARS = 420                   # 「6줄」은 찍힌 줄이라 글자 수로도 잰다 (§ 5)
+# 발췌 한도는 **대표 문항의 갈래마다 다르다** (§ 5). 서술형이면 〈조건〉 상자와
+# 모범답안 줄이 더 붙어 같은 여섯 줄에 2쪽이 된다 — 실측으로 확인했다.
+# 빌더(report_build.limits_for)와 **같은 값**이어야 한다. 한쪽만 고치면
+# 빌더가 통과시킨 종이를 게이트가 막거나, 그 반대가 된다.
+EXCERPT_LINES = 6                     # 객관식 대표 문항
+EXCERPT_CHARS = 420                   # 「6줄」은 찍힌 줄이라 글자 수로도 잰다
+EXCERPT_LINES_ESSAY = 4               # 서술형 대표 문항
+EXCERPT_CHARS_ESSAY = 280
 SUMMARY_CARDS = 4                     # 숫자 카드 정확히 4개 (§ 2-1)
 SUMMARY_TYPES = 3                     # 유형은 상위 3개까지 (§ 2-1)
 
@@ -303,10 +309,15 @@ def check_summary_html(g, name, html):
         txt = htmlmod.unescape(re.sub(r"<[^>]+>", "", m.group(1)))
         lines = [ln for ln in txt.splitlines() if ln.strip()]
         chars = len(re.sub(r"\s+", " ", txt).strip())
-        g.check(len(lines) <= EXCERPT_LINES and chars <= EXCERPT_CHARS,
+        # 갈래는 종이에 찍힌 배지로 읽는다 — report.json 없이도 재야 하기 때문이다.
+        essay = bool(re.search(r'class="k-kind"[^>]*>\s*서술형', html))
+        lim_l = EXCERPT_LINES_ESSAY if essay else EXCERPT_LINES
+        lim_c = EXCERPT_CHARS_ESSAY if essay else EXCERPT_CHARS
+        g.check(len(lines) <= lim_l and chars <= lim_c,
                 "%s · 발췌 한도" % name,
-                "발췌가 %d줄 %d자입니다 (한도 %d줄 %d자) — 판가름 나는 대목만 남기고 «…» 로 "
-                "줄이거나, 다른 문항을 고르세요" % (len(lines), chars, EXCERPT_LINES, EXCERPT_CHARS))
+                "발췌가 %d줄 %d자입니다 (%s 한도 %d줄 %d자) — 판가름 나는 대목만 남기고 «…» 로 "
+                "줄이거나, 다른 문항을 고르세요"
+                % (len(lines), chars, "서술형" if essay else "객관식", lim_l, lim_c))
     else:
         g.check(not nk, "%s · 발췌 존재" % name, "대표 문항에 발췌(k-excerpt)가 없습니다")
 
