@@ -337,7 +337,13 @@ def check_summary_html(g, name, html):
 CAP_RE = re.compile(r'<div class="(?:[a-z0-9-]*-)?cap"[^>]*>(.*?)</div>', re.S)
 SEC_SPLIT = re.compile(r'<div class="sec[ "]')
 CARD_ANY = re.compile(r'class="(?:info-)?card[ "]')
-CARD_KEY = re.compile(r'class="(?:info-)?card[^"]*\bkey\b')
+# 강조 카드를 두 판형이 **다른 방법으로** 표시한다 — class 하나만 보면 안 된다.
+#   상세본  <div class="info-card key">          ← class
+#   요약본  <div class="card" data-key="1">      ← 속성
+#           <div class="card" data-unit="">      ← 단위가 빈 «말» 카드도 강조다
+# class 만 세던 동안 **요약본에서는 늘 0개를 세고 통과**했다. 둘을 칠해도 안 걸린다 —
+# 재기는 하는데 아무것도 못 보는 검사였다.
+CARD_KEY = re.compile(r'class="(?:info-)?card[^"]*\bkey\b|data-key="1"|data-unit=""')
 BAR_ANY = re.compile(r'class="bar-row[ "]')
 BAR_EM = re.compile(r'class="bar-row[^"]*\bem\b|data-em="em"')
 STEPS_FLOW = re.compile(r'<ol class="steps flow"[^>]*>(.*?)</ol>', re.S)
